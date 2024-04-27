@@ -24,7 +24,20 @@ input: /* empty */
 ;
 
 line: EOL
+| comp_stmt EOL
 | expr EOL          { printf("= %d\n", $1); }
+;
+
+stmt: comp_stmt '}'
+| IF_POS '{' expr '}' END stmt
+| IF_NEG '{' expr '}' END stmt
+| IF_ZERO '{' expr '}' END stmt
+| DO '{' '}' LOOP stmt
+| expr stmt
+;
+
+comp_stmt: '{'
+| comp_stmt stmt
 ;
 
 expr: NUMBER        { $$ = $1;         }
@@ -33,6 +46,12 @@ expr: NUMBER        { $$ = $1;         }
 | expr expr MUL     { $$ = $1 * $2;    }
 | expr expr DIV     { $$ = $1 / $2;    }
 | expr expr MOD     { $$ = $1 % $2;    }
+| expr expr MAX     { $$ = $1 % $2;    }
+| expr expr MIN     { $$ = $1 % $2;    }
+| var_defs
+;
+
+var_defs: VAR IDENTIFIER
 | IDENTIFIER EQUALS
 ;
 

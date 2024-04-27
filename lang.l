@@ -35,7 +35,7 @@
 
 "var"	{ return VAR; }
 "="	{ return EQUALS; }
-[a-zA-Z]+ { return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z_0-9]* { return IDENTIFIER; }
 
 \n		{ return EOL; }
 [ \t]	{ }
