@@ -1,3 +1,9 @@
+main
+do
 if_zero
-    4 4 *
-end;
+1
+else
+0
+end
+loop
+end_program

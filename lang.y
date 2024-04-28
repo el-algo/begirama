@@ -10,43 +10,38 @@ void yyerror(const char *s);
 
 /* declare tokens */
 %token VAR EQUALS IDENTIFIER
-%token NUMBER
+%token NUMBER MAIN END_PROGRAM
 %token ADD SUB MUL DIV MOD
 %token MAX MIN
 %token POP DUP SWAP DROP OVER
-%token IF_POS IF_NEG IF_ZERO ELSE DO LOOP END
+%token IF_POS IF_NEG IF_ZERO ELSE THEN DO LOOP END
 %token FUNC
 %token IN OUT
 %token EOL OTHER
 
 %%
 
-input: /* empty */
-| input line
+program:
+  
+| program mainfunc
 ;
 
-line: EOL
-| stmt EOL
+mainfunc: MAIN code END_PROGRAM;
+
+code: expr code { printf("= %d\n", $$); }
+| condition code
+| do_loop code
+|
 ;
 
-stmt: IF_ZERO else_body { printf("zero? else \n"); }
-| IF_POS else_body      { printf("pos? else \n"); }
-| IF_NEG else_body      { printf("neg? else \n"); }
-| IF_ZERO cond_body     { printf("zero?\n"); }
-| IF_POS cond_body      { printf("pos?\n"); }
-| IF_NEG cond_body      { printf("neg?\n"); }
-| expr                  { printf("MATH %d\n", $$); }
-| DO loop_body          { printf("do loop\n"); }
+condition: cond_type code ELSE code END;
+
+cond_type: IF_ZERO { printf("zero?\n"); }
+| IF_NEG { printf("neg?\n"); }
+| IF_POS { printf("pos?\n"); }
 ;
 
-cond_body: stmt END
-;
-
-else_body: stmt ELSE cond_body
-;
-
-loop_body: stmt LOOP
-;
+do_loop: DO code LOOP { printf("do loop\n"); };
 
 expr: NUMBER        { $$ = $1;         }
 | expr expr ADD     { $$ = $1 + $2;    }

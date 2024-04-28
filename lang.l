@@ -25,6 +25,9 @@
 "if_neg"	{ return IF_NEG; }
 "if_zero"	{ return IF_ZERO; }
 "else"	{ return ELSE; }
+"then"  { return THEN; }
+"main"  { return MAIN; }
+"end_program"  { return END_PROGRAM; }
 
 "do"	{ return DO; }
 "loop"	{ return LOOP; }
