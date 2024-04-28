@@ -1,7 +1,9 @@
 /* recognize tokens for the calculator and print them out */
 %{
+# include <stdio.h>
 # include "lang.tab.h"
 %}
+%option noyywrap
 
 %%
 [0-9]+	{ yylval = atoi(yytext); return NUMBER; }
@@ -28,15 +30,10 @@
 "loop"	{ return LOOP; }
 "end"	{ return END; }
 
-"func"	{ return FUNC; }
-
 "in"	{ return IN; }
 "out"	{ return OUT; }
 
-"var"	{ return VAR; }
-"="	{ return EQUALS; }
-[a-zA-Z_][a-zA-Z_0-9]* { return IDENTIFIER; }
-
-\n		{ return EOL; }
+";"		{ return EOL; }
+\n		{ }
 [ \t]	{ }
-.		{ return OTHER; }
+.		{ /*return OTHER;*/ }

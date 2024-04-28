@@ -1,10 +1,12 @@
 %{
 #include <stdio.h>
 
-int yylex(void);
-int yyerror(char *s);
+extern FILE *yyin;
+extern int yylex(void);
+void yyerror(const char *s);
 
 %}
+%define parse.error verbose
 
 /* declare tokens */
 %token VAR EQUALS IDENTIFIER
@@ -24,20 +26,26 @@ input: /* empty */
 ;
 
 line: EOL
-| comp_stmt EOL
-| expr EOL          { printf("= %d\n", $1); }
+| stmt EOL
 ;
 
-stmt: comp_stmt '}'
-| IF_POS '{' expr '}' END stmt
-| IF_NEG '{' expr '}' END stmt
-| IF_ZERO '{' expr '}' END stmt
-| DO '{' '}' LOOP stmt
-| expr stmt
+stmt: IF_ZERO else_body { printf("zero? else \n"); }
+| IF_POS else_body      { printf("pos? else \n"); }
+| IF_NEG else_body      { printf("neg? else \n"); }
+| IF_ZERO cond_body     { printf("zero?\n"); }
+| IF_POS cond_body      { printf("pos?\n"); }
+| IF_NEG cond_body      { printf("neg?\n"); }
+| expr                  { printf("MATH %d\n", $$); }
+| DO loop_body          { printf("do loop\n"); }
 ;
 
-comp_stmt: '{'
-| comp_stmt stmt
+cond_body: stmt END
+;
+
+else_body: stmt ELSE cond_body
+;
+
+loop_body: stmt LOOP
 ;
 
 expr: NUMBER        { $$ = $1;         }
@@ -48,21 +56,17 @@ expr: NUMBER        { $$ = $1;         }
 | expr expr MOD     { $$ = $1 % $2;    }
 | expr expr MAX     { $$ = $1 % $2;    }
 | expr expr MIN     { $$ = $1 % $2;    }
-| var_defs
-;
-
-var_defs: VAR IDENTIFIER
-| IDENTIFIER EQUALS
 ;
 
 %%
 int main(int argc, char **argv)
 {
+    yyin = fopen("test.beg", "r");
     yyparse();
-    printf("%d\n", yyparse());
+    //printf("%d\n", yyparse());
 }
 
-int yyerror(char *s)
+void yyerror(const char *s)
 {
     fprintf(stderr, "error: %s\n", s);
 }
