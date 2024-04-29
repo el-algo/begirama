@@ -1,12 +1,11 @@
 main
 in
 if_zero
-	0
-	out
+    0
 else
-	1
+    1
 	do
-		out
-	loop
+        out
+    loop
 end
 end_program
