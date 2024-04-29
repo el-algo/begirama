@@ -1,9 +1,12 @@
 main
-do
+in
 if_zero
-1
+	0
+	out
 else
-0
+	1
+	do
+		out
+	loop
 end
-loop
 end_program

@@ -35,6 +35,7 @@
 
 "in"	{ return IN; }
 "out"	{ return OUT; }
+"say"	{ return SAY; }
 
 ";"		{ return EOL; }
 \n		{ }
