@@ -1419,7 +1419,7 @@ yyreduce:
     {
   case 4: /* $@1: %empty  */
 #line 31 "lang.y"
- { printf("section .text\n\tglobal _start\nextern printf\nextern scanf\n\n_start:\n"); }
+ { printf("section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\n_start:\n"); }
 #line 1424 "lang.tab.c"
     break;
 
@@ -1533,19 +1533,19 @@ yyreduce:
 
   case 29: /* in_and_out: IN  */
 #line 81 "lang.y"
-               { printf("\t; scanf\n"); }
+               { printf("\tcall in\n"); }
 #line 1538 "lang.tab.c"
     break;
 
   case 30: /* in_and_out: OUT  */
 #line 82 "lang.y"
-      { printf("\t; print int\n"); }
+      { printf("\tcall out\n"); }
 #line 1544 "lang.tab.c"
     break;
 
   case 31: /* in_and_out: SAY  */
 #line 83 "lang.y"
-      { printf("\t; print char\n"); }
+      { printf("\tcall say\n"); }
 #line 1550 "lang.tab.c"
     break;
 
@@ -1810,6 +1810,7 @@ int main(int argc, char **argv)
 {
     yyin = fopen("test.beg", "r");
     yyparse();
+    // TODO: Output out.asm
     //printf("%d\n", yyparse());
 }
 

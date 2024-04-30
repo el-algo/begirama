@@ -28,7 +28,7 @@ program:
 ;
 
 mainfunc: MAIN
- { printf("section .text\n\tglobal _start\nextern printf\nextern scanf\n\n_start:\n"); }
+ { printf("section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\n_start:\n"); }
  code
  END_PROGRAM
  { printf("\n\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n"); }
@@ -78,9 +78,9 @@ LOOP
 { printf("\tjmp loop_%d\n", loops++); }
 ;
 
-in_and_out: IN { printf("\t; scanf\n"); }
-| OUT { printf("\t; print int\n"); }
-| SAY { printf("\t; print char\n"); };
+in_and_out: IN { printf("\tcall in\n"); }
+| OUT { printf("\tcall out\n"); }
+| SAY { printf("\tcall say\n"); };
 ;
 
 
@@ -96,6 +96,7 @@ int main(int argc, char **argv)
 {
     yyin = fopen("test.beg", "r");
     yyparse();
+    // TODO: Output out.asm
     //printf("%d\n", yyparse());
 }
 

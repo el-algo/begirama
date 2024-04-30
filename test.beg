@@ -1,5 +1,5 @@
 main
-in
+0
 if_zero
     0
 else
@@ -8,4 +8,5 @@ else
         out
     loop
 end
+out
 end_program
