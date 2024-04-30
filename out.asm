@@ -10,13 +10,13 @@ _start:
         cmp rax, 0
         jne cond_1
         push 0
-        jmp cond_end
+        jmp cond_end_1
 cond_1:
-        push 4242
+        push 1
 loop_1:
         call out
         jmp loop_1
-cond_end:
+cond_end_1:
         call out
 
         mov rax, 60
