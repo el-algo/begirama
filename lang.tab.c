@@ -1491,13 +1491,13 @@ yyreduce:
 
   case 22: /* $@4: %empty  */
 #line 62 "lang.y"
-{ printf("\tjmp cond_end\ncond_%d:\n", conditionals++); }
+{ printf("\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
 #line 1496 "lang.tab.c"
     break;
 
   case 23: /* condition: $@2 cond_type $@3 code ELSE $@4 code END  */
 #line 65 "lang.y"
-{ printf("cond_end:\n"); }
+{ printf("cond_end_%d:\n", conditionals++); }
 #line 1502 "lang.tab.c"
     break;
 

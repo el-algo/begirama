@@ -59,10 +59,10 @@ cond_type
 { printf("cond_%d\n", conditionals); }
 code
 ELSE
-{ printf("\tjmp cond_end\ncond_%d:\n", conditionals++); }
+{ printf("\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
 code
 END
-{ printf("cond_end:\n"); }
+{ printf("cond_end_%d:\n", conditionals++); }
 ;
 
 cond_type: IF_ZERO { printf("\tjne "); }
