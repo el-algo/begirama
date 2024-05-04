@@ -1,8 +1,9 @@
-global out
+global out, say, in
 
 section .bss
     res resd 1
     pos resd 1
+    max_digits resb 11
 
 section .text
 ; Prints the top of the stack
@@ -51,3 +52,24 @@ out:
         add rsp, 8          ; Return stack pointer to origin
     
         ret
+
+say:
+    add rsp, 8
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, 1
+    syscall
+
+    sub rsp, 8              ; Return stack pointer to origin
+    ret
+
+in:
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, max_digits
+    mov rdx, 11
+    syscall
+
+    call say
+    ret

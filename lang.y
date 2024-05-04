@@ -1,8 +1,9 @@
 %{
 #include <stdio.h>
 
-extern FILE *yyin;
 extern int yylex(void);
+extern FILE *yyin;
+extern FILE *yyout;
 void yyerror(const char *s);
 
 int loops = 1;
@@ -28,10 +29,10 @@ program:
 ;
 
 mainfunc: MAIN
- { printf("section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\n_start:\n"); }
+ { fprintf(yyout, "section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\n_start:\n"); }
  code
  END_PROGRAM
- { printf("\n\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n"); }
+ { fprintf(yyout, "\n\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n"); }
  ;
 
 code: expr code
@@ -43,61 +44,64 @@ code: expr code
 ;
 
 
-expr: NUMBER        { printf("\tpush %d\n", $1); }
-| expr expr ADD     { printf("\tpop rax\n\tpop rbx\n\tadd rbx\n\tpush rax\n"); }
-| expr expr SUB     { printf("\tpop rax\n\tpop rbx\n\tsub rbx\n\tpush rax\n"); }
-| expr expr MUL     { printf("\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
-| expr expr DIV     { printf("\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
-| expr expr MOD     { printf("\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
-| expr expr MAX     { printf("\t; max\n");  }
-| expr expr MIN     { printf("\t; min\n");  }
+expr: NUMBER        { fprintf(yyout, "\tpush %d\n", $1); }
+| expr expr ADD     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tadd rax, rbx\n\tpush rax\n"); }
+| expr expr SUB     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tsub rax, rbx\n\tpush rax\n"); }
+| expr expr MUL     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
+| expr expr DIV     { fprintf(yyout, "\txor rdx, rdx\n\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
+| expr expr MOD     { fprintf(yyout, "\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
+| expr expr MAX     { fprintf(yyout, "\t; max\n");  }
+| expr expr MIN     { fprintf(yyout, "\t; min\n");  }
 ;
 
 
-condition: { printf("\tpop rax\n\tcmp rax, 0\n"); }
+condition: { fprintf(yyout, "\tpop rax\n\tcmp rax, 0\n"); }
 cond_type
-{ printf("cond_%d\n", conditionals); }
+{ fprintf(yyout, "cond_%d\n", conditionals); }
 code
 ELSE
-{ printf("\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
+{ fprintf(yyout, "\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
 code
 END
-{ printf("cond_end_%d:\n", conditionals++); }
+{ fprintf(yyout, "cond_end_%d:\n", conditionals++); }
 ;
 
-cond_type: IF_ZERO { printf("\tjne "); }
-| IF_NEG           { printf("\tjg "); }
-| IF_POS           { printf("\tjl "); }
+cond_type: IF_ZERO { fprintf(yyout, "\tjne "); }
+| IF_NEG           { fprintf(yyout, "\tjg "); }
+| IF_POS           { fprintf(yyout, "\tjl "); }
 ;
 
 
 do_loop: DO
-{ printf("loop_%d:\n", loops); }
+{ fprintf(yyout, "loop_%d:\n", loops); }
 code
 LOOP
-{ printf("\tjmp loop_%d\n", loops++); }
+{ fprintf(yyout, "\tjmp loop_%d\n", loops++); }
 ;
 
-in_and_out: IN { printf("\tcall in\n"); }
-| OUT { printf("\tcall out\n"); }
-| SAY { printf("\tcall say\n"); };
+in_and_out: IN { fprintf(yyout, "\tcall in\n"); }
+| OUT { fprintf(yyout, "\tcall out\n"); }
+| SAY { fprintf(yyout, "\tcall say\n"); };
 ;
 
 
-stack: POP { printf("\tpop rax\n"); }
-| DUP      { printf("\tpop rax\n\tpush rax\n\tpush rax\n"); }
-| SWAP     { printf("\tpop rax\n\tpop rbx\n\tpush rax\n\tpush rbx\n"); }
-| DROP     { printf("\tmov rbx, rax\n\tpop rax\n\t mov rax, rbx\n"); }
-| OVER     { printf("\tpop rax\n\tpop rbx\n\tpush rbx\n\tpush rax\n\tpush rbx\n"); }
+stack: POP { fprintf(yyout, "\tpop rax\n"); }
+| DUP      { fprintf(yyout, "\tpop rax\n\tpush rax\n\tpush rax\n"); }
+| SWAP     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rax\n\tpush rbx\n"); }
+| DROP     { fprintf(yyout, "\tmov rbx, rax\n\tpop rax\n\t mov rax, rbx\n"); }
+| OVER     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rbx\n\tpush rax\n\tpush rbx\n"); }
 ;
 
 %%
 int main(int argc, char **argv)
 {
     yyin = fopen("test.beg", "r");
+    yyout = fopen("out.asm", "w");
+
     yyparse();
-    // TODO: Output out.asm
-    //printf("%d\n", yyparse());
+
+    fclose(yyin);
+    fclose(yyout);
 }
 
 void yyerror(const char *s)
