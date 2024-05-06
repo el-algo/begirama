@@ -1,9 +1,9 @@
-global out, say, in
+global out, say, in, exit
 
 section .bss
     res resd 1
     pos resd 1
-    max_digits resb 11
+    max_digits resb 16
 
 section .text
 ; Prints the top of the stack
@@ -16,7 +16,7 @@ out:
         
     .a:
         xor rdx, rdx
-        div bx          ; Actual number / 10
+        div rbx          ; Actual number / 10
         push rdx
         inc rcx         ; Count digits
         test rax, rax
@@ -65,11 +65,33 @@ say:
     ret
 
 in:
+    push rax
     mov rax, 0
     mov rdi, 0
     mov rsi, max_digits
-    mov rdx, 11
+    mov rdx, 16
     syscall
 
-    call say
+    xor rbx, rbx
+    .next_digit:
+        mov al, byte[rsi]
+        inc rsi
+
+        cmp al, '0'
+        jl done
+        cmp al, '9'
+        jg done
+
+        sub al, '0'
+        imul rbx, 10
+        add rbx, rax
+        jmp .next_digit
+
+    done:
+    pop rax
     ret
+
+exit:
+    mov rax, 60
+    mov rdx, 0
+    syscall
