@@ -12,14 +12,13 @@
 "*"		{ return MUL; }
 "/"		{ return DIV; }
 "%"		{ return MOD; }
-"max"	{ return MAX; }
-"min"	{ return MIN; }
 
 "pop"	{ return POP; }
 "dup"	{ return DUP; }
 "swap"	{ return SWAP; }
-"drop"	{ return DROP; }
 "over"	{ return OVER; }
+"drop"	{ return DROP; }
+"hold"	{ return HOLD; }
 
 "if_pos"	{ return IF_POS; }
 "if_neg"	{ return IF_NEG; }
@@ -35,6 +34,7 @@
 "in"	{ return IN; }
 "out"	{ return OUT; }
 "say"	{ return SAY; }
+"exit"	{ return EXIT; }
 
 \n		{ }
 [ \t]	{ }

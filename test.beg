@@ -1,12 +1,4 @@
 main
-1
-if_zero
-    0
-else
-    1
-	do
-        out
-    loop
-end
+in
 out
 end_program

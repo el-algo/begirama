@@ -15,10 +15,9 @@ int conditionals = 1;
 /* declare tokens */
 %token MAIN END_PROGRAM
 %token NUMBER ADD SUB MUL DIV MOD
-%token MAX MIN
-%token POP DUP SWAP DROP OVER
+%token POP DUP SWAP OVER DROP HOLD
 %token IF_POS IF_NEG IF_ZERO ELSE DO LOOP END
-%token IN OUT SAY
+%token IN OUT SAY EXIT
 %token EOL OTHER
 
 %%
@@ -29,10 +28,10 @@ program:
 ;
 
 mainfunc: MAIN
- { fprintf(yyout, "section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\n_start:\n"); }
+ { fprintf(yyout, "section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\textern exit\n\n_start:\n"); }
  code
  END_PROGRAM
- { fprintf(yyout, "\n\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n"); }
+ { fprintf(yyout, "\tcall exit\n"); }
  ;
 
 code: expr code
@@ -50,12 +49,10 @@ expr: NUMBER        { fprintf(yyout, "\tpush %d\n", $1); }
 | expr expr MUL     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
 | expr expr DIV     { fprintf(yyout, "\txor rdx, rdx\n\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
 | expr expr MOD     { fprintf(yyout, "\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
-| expr expr MAX     { fprintf(yyout, "\t; max\n");  }
-| expr expr MIN     { fprintf(yyout, "\t; min\n");  }
 ;
 
 
-condition: { fprintf(yyout, "\tpop rax\n\tcmp rax, 0\n"); }
+condition: { fprintf(yyout, "\tmov rax, [rsp]\n\tcmp rax, 0\n"); }
 cond_type
 { fprintf(yyout, "cond_%d\n", conditionals); }
 code
@@ -79,23 +76,25 @@ LOOP
 { fprintf(yyout, "\tjmp loop_%d\n", loops++); }
 ;
 
-in_and_out: IN { fprintf(yyout, "\tcall in\n"); }
+in_and_out: IN { fprintf(yyout, "\tcall in\n\tpush rbx\n"); }
 | OUT { fprintf(yyout, "\tcall out\n"); }
-| SAY { fprintf(yyout, "\tcall say\n"); };
+| SAY { fprintf(yyout, "\tcall say\n"); }
+| EXIT { fprintf(yyout, "\tcall exit\n"); }
 ;
 
 
 stack: POP { fprintf(yyout, "\tpop rax\n"); }
 | DUP      { fprintf(yyout, "\tpop rax\n\tpush rax\n\tpush rax\n"); }
 | SWAP     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rax\n\tpush rbx\n"); }
-| DROP     { fprintf(yyout, "\tmov rbx, rax\n\tpop rax\n\t mov rax, rbx\n"); }
 | OVER     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rbx\n\tpush rax\n\tpush rbx\n"); }
+| DROP     { fprintf(yyout, "\tadd rsp, 8\n"); }
+| HOLD     { fprintf(yyout, "\tsub rsp, 8\n"); }
 ;
 
 %%
 int main(int argc, char **argv)
 {
-    yyin = fopen("test.beg", "r");
+    yyin = fopen(argv[1], "r");
     yyout = fopen("out.asm", "w");
 
     yyparse();
