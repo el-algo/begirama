@@ -72,15 +72,16 @@ extern int yydebug;
     IF_NEG = 273,                  /* IF_NEG  */
     IF_ZERO = 274,                 /* IF_ZERO  */
     ELSE = 275,                    /* ELSE  */
-    DO = 276,                      /* DO  */
-    LOOP = 277,                    /* LOOP  */
-    END = 278,                     /* END  */
-    IN = 279,                      /* IN  */
-    OUT = 280,                     /* OUT  */
-    SAY = 281,                     /* SAY  */
-    EXIT = 282,                    /* EXIT  */
-    EOL = 283,                     /* EOL  */
-    OTHER = 284                    /* OTHER  */
+    END = 276,                     /* END  */
+    DO = 277,                      /* DO  */
+    LOOP = 278,                    /* LOOP  */
+    BREAK = 279,                   /* BREAK  */
+    IN = 280,                      /* IN  */
+    OUT = 281,                     /* OUT  */
+    SAY = 282,                     /* SAY  */
+    EXIT = 283,                    /* EXIT  */
+    EOL = 284,                     /* EOL  */
+    OTHER = 285                    /* OTHER  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

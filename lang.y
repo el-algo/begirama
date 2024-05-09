@@ -7,6 +7,7 @@ extern FILE *yyout;
 void yyerror(const char *s);
 
 int loops = 1;
+int breaks = 1;
 int conditionals = 1;
 
 %}
@@ -16,7 +17,7 @@ int conditionals = 1;
 %token MAIN END_PROGRAM
 %token NUMBER ADD SUB MUL DIV MOD
 %token POP DUP SWAP OVER DROP HOLD
-%token IF_POS IF_NEG IF_ZERO ELSE DO LOOP END
+%token IF_POS IF_NEG IF_ZERO ELSE END DO LOOP BREAK
 %token IN OUT SAY EXIT
 %token EOL OTHER
 
@@ -39,6 +40,7 @@ code: expr code
 | do_loop code
 | in_and_out code
 | stack code
+| break code
 |
 ;
 
@@ -73,7 +75,7 @@ do_loop: DO
 { fprintf(yyout, "loop_%d:\n", loops); }
 code
 LOOP
-{ fprintf(yyout, "\tjmp loop_%d\n", loops++); }
+{ fprintf(yyout, "\tjmp loop_%d\nloop_%d_end:\n", loops, loops); loops++;}
 ;
 
 in_and_out: IN { fprintf(yyout, "\tcall in\n\tpush rbx\n"); }
@@ -90,6 +92,9 @@ stack: POP { fprintf(yyout, "\tpop rax\n"); }
 | DROP     { fprintf(yyout, "\tadd rsp, 8\n"); }
 | HOLD     { fprintf(yyout, "\tsub rsp, 8\n"); }
 ;
+
+
+break: BREAK { fprintf(yyout, "\tjmp loop_%d_end\n", breaks++); };
 
 %%
 int main(int argc, char **argv)

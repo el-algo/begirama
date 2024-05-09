@@ -24,12 +24,14 @@
 "if_neg"	{ return IF_NEG; }
 "if_zero"	{ return IF_ZERO; }
 "else"	{ return ELSE; }
+"end"	{ return END; }
+
 "main"  { return MAIN; }
 "end_program"  { return END_PROGRAM; }
 
 "do"	{ return DO; }
 "loop"	{ return LOOP; }
-"end"	{ return END; }
+"break"	{ return BREAK; }
 
 "in"	{ return IN; }
 "out"	{ return OUT; }
