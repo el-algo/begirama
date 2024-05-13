@@ -13,7 +13,26 @@ out:
     xor rcx, rcx
 
     mov rbx, 10         ; Division const
-        
+
+    test rax, rax
+    jnl .a
+
+    ; Make number positive for printing
+    neg rax
+    push rax
+
+    ; Print '-'
+    push 0x2D
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, 1
+    syscall
+    add rsp, 8              ; Return stack pointer to origin
+    
+    pop rax
+    xor rcx, rcx
+
     .a:
         xor rdx, rdx
         div rbx          ; Actual number / 10
@@ -28,6 +47,7 @@ out:
         add rdx, '0'        ; Digits -> ASCII
         mov [res], dl
 
+    .c:
         ; Print actual char
         mov rax, 1
         mov rdi, 1
