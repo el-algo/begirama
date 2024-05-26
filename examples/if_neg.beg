@@ -4,5 +4,5 @@ main
         101
     else
     end
-    say
+    out
 end_program
