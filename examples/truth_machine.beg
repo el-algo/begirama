@@ -1,0 +1,12 @@
+main
+    in
+    if_zero
+        0
+        out
+    else
+        1
+        do
+            out
+        loop
+    end
+end_program

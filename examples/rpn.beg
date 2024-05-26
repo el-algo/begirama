@@ -1,0 +1,4 @@
+main
+    1 2 3 + +
+    out
+end_program

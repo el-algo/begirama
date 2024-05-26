@@ -1,0 +1,9 @@
+main
+    0
+    if_zero
+        24
+    else
+        42
+    end
+    out
+end_program

@@ -1,0 +1,20 @@
+main
+    1
+    do
+        if_zero
+            break
+        else
+            drop
+            in
+        end
+    loop
+    0 10 41 58
+    do
+        if_zero
+            break
+        else
+            say
+            drop
+        end
+    loop
+end_program

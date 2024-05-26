@@ -1,0 +1,5 @@
+main
+    10
+    in say
+    drop say
+end_program

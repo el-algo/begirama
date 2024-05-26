@@ -1,0 +1,8 @@
+main
+    2 2 +
+    if_pos
+        68
+    else
+    end
+    out
+end_program

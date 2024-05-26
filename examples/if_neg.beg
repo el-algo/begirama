@@ -1,0 +1,8 @@
+main
+    4 2 -
+    if_neg
+        101
+    else
+    end
+    say
+end_program
