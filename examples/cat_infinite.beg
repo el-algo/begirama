@@ -1,0 +1,6 @@
+main
+	do
+	    in
+	    out
+	loop
+end_program
