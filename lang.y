@@ -23,11 +23,14 @@ int conditionals = 1;
 
 %%
 
+/* Starter rule */
 program:
   
 | program mainfunc
 ;
 
+
+/* Main function */
 mainfunc: MAIN
  { fprintf(yyout, "section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\textern exit\n\n_start:\n"); }
  code
@@ -35,6 +38,8 @@ mainfunc: MAIN
  { fprintf(yyout, "\tcall exit\n"); }
  ;
 
+
+/* Body */
 code: expr code
 | condition code
 | do_loop code
@@ -45,6 +50,7 @@ code: expr code
 ;
 
 
+/* Arithmetic Operations */
 expr: NUMBER        { fprintf(yyout, "\tpush %d\n", $1); }
 | expr expr ADD     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tadd rax, rbx\n\tpush rax\n"); }
 | expr expr SUB     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tsub rax, rbx\n\tpush rax\n"); }
@@ -54,6 +60,7 @@ expr: NUMBER        { fprintf(yyout, "\tpush %d\n", $1); }
 ;
 
 
+/* Conditional rule */
 condition: { fprintf(yyout, "\tmov rax, [rsp]\n\tcmp rax, 0\n"); }
 cond_type
 { fprintf(yyout, "cond_%d\n", conditionals); }
@@ -65,12 +72,14 @@ END
 { fprintf(yyout, "cond_end_%d:\n", conditionals++); }
 ;
 
+/* Types of conditionals */
 cond_type: IF_ZERO { fprintf(yyout, "\tjne "); }
 | IF_NEG           { fprintf(yyout, "\tjg "); }
 | IF_POS           { fprintf(yyout, "\tjl "); }
 ;
 
 
+/* Infinite loop */
 do_loop: DO
 { fprintf(yyout, "loop_%d:\n", loops); }
 code
@@ -78,6 +87,12 @@ LOOP
 { fprintf(yyout, "\tjmp loop_%d\nloop_%d_end:\n", loops, loops); loops++;}
 ;
 
+
+/* Break out of loop instruction */
+break: BREAK { fprintf(yyout, "\tjmp loop_%d_end\n", breaks++); };
+
+
+/* I/O Instructions. */
 in_and_out: IN { fprintf(yyout, "\tcall in\n\tpush rbx\n"); }
 | OUT { fprintf(yyout, "\tcall out\n"); }
 | SAY { fprintf(yyout, "\tcall say\n"); }
@@ -85,6 +100,7 @@ in_and_out: IN { fprintf(yyout, "\tcall in\n\tpush rbx\n"); }
 ;
 
 
+/* Stack Operations */
 stack: POP { fprintf(yyout, "\tpop rax\n"); }
 | DUP      { fprintf(yyout, "\tpop rax\n\tpush rax\n\tpush rax\n"); }
 | SWAP     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rax\n\tpush rbx\n"); }
@@ -93,17 +109,17 @@ stack: POP { fprintf(yyout, "\tpop rax\n"); }
 | HOLD     { fprintf(yyout, "\tsub rsp, 8\n"); }
 ;
 
-
-break: BREAK { fprintf(yyout, "\tjmp loop_%d_end\n", breaks++); };
-
 %%
 int main(int argc, char **argv)
 {
+    // Open the source file in read mode
     yyin = fopen(argv[1], "r");
     yyout = fopen("out.asm", "w");
 
+    // Parse source file
     yyparse();
 
+    // Close the input and output files
     fclose(yyin);
     fclose(yyout);
 }

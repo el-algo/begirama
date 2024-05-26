@@ -1,9 +1,17 @@
-/* recognize tokens for the calculator and print them out */
 %{
 # include <stdio.h>
+/* Get access to token types for return statements */
 # include "lang.tab.h"
 %}
+/* Read only input files */
 %option noyywrap
+
+/* Arithmetic Operations */
+/* Stack Operations */
+/* Conditionals */
+/* Main & End */
+/* Loops */
+/* I/O Instructions*/
 
 %%
 [0-9]+	{ yylval = atoi(yytext); return NUMBER; }
