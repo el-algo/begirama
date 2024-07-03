@@ -87,12 +87,22 @@ say:
 in:
     push rax
     mov rax, 0
-    mov rdi, 0
+    mov rdi, 1
     mov rsi, max_digits
     mov rdx, 16
     syscall
 
     xor rbx, rbx
+
+    mov al, byte[rsi]
+    inc rsi
+    cmp al, '-'
+    je .next_digit
+
+    ; The number is negative
+    dec rsi
+    mov rdi, 0
+
     .next_digit:
         mov al, byte[rsi]
         inc rsi
@@ -108,6 +118,11 @@ in:
         jmp .next_digit
 
     done:
+    cmp rdi, 0
+    je in_final
+    neg rbx
+
+    in_final:
     pop rax
     ret
 
