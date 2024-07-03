@@ -14,7 +14,7 @@
 /* I/O Instructions*/
 
 %%
-[0-9]+	{ yylval = atoi(yytext); return NUMBER; }
+[-]?[0-9]+	{ yylval = atoi(yytext); return NUMBER; }
 "+"		{ return ADD; }
 "-"		{ return SUB; }
 "*"		{ return MUL; }

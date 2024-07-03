@@ -416,15 +416,15 @@ static const YY_CHAR yy_meta[34] =
 
 static const flex_int16_t yy_base[85] =
     {   0,
-        0,    0,   96,   97,   97,   97,   97,   97,   97,   97,
-       97,   86,   69,   11,   15,   70,   23,   69,   80,   12,
-       67,   31,   80,   74,   97,   64,   62,   59,   71,   65,
-       62,   71,   97,   57,   61,   51,   63,   52,   43,   63,
-       62,   48,   97,   57,   60,   42,   55,   25,   43,   44,
-       97,   40,   97,   97,   40,   44,   97,   97,   38,   97,
-       97,   46,   36,   43,   97,   97,   97,   97,   97,   31,
-       39,   28,   28,   29,   97,   97,   28,   34,   97,   23,
-       33,   22,   97,   97
+        0,    0,   97,   98,   98,   98,   98,   98,   98,   87,
+       98,   86,   69,   11,   15,   70,   23,   69,   80,   12,
+       67,   31,   80,   74,   98,   64,   62,   59,   71,   65,
+       62,   71,   98,   57,   61,   51,   63,   52,   43,   63,
+       62,   48,   98,   57,   60,   42,   55,   25,   43,   44,
+       98,   40,   98,   98,   40,   44,   98,   98,   38,   98,
+       98,   46,   36,   43,   98,   98,   98,   98,   98,   31,
+       39,   28,   28,   29,   98,   98,   28,   34,   98,   23,
+       33,   22,   98,   98
     } ;
 
 static const flex_int16_t yy_def[85] =
@@ -440,7 +440,7 @@ static const flex_int16_t yy_def[85] =
        84,   84,   84,    0
     } ;
 
-static const flex_int16_t yy_nxt[131] =
+static const flex_int16_t yy_nxt[132] =
     {   0,
         4,    5,    6,    7,    8,    9,   10,   11,   12,    4,
         4,   13,   14,   15,    4,    4,   16,   17,    4,   18,
@@ -451,14 +451,15 @@ static const flex_int16_t yy_nxt[131] =
        40,   70,   69,   68,   67,   66,   65,   61,   60,   59,
        58,   57,   56,   55,   54,   53,   52,   51,   50,   49,
        48,   47,   46,   45,   44,   43,   42,   41,   23,   38,
-       35,   34,   31,   24,   23,   84,    3,   84,   84,   84,
+       35,   34,   31,   24,   23,   23,   84,    3,   84,   84,
 
        84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
        84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
-       84,   84,   84,   84,   84,   84,   84,   84,   84,   84
+       84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
+       84
     } ;
 
-static const flex_int16_t yy_chk[131] =
+static const flex_int16_t yy_chk[132] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -469,11 +470,12 @@ static const flex_int16_t yy_chk[131] =
        22,   59,   56,   55,   52,   50,   49,   47,   46,   45,
        44,   42,   41,   40,   39,   38,   37,   36,   35,   34,
        32,   31,   30,   29,   28,   27,   26,   24,   23,   21,
-       19,   18,   16,   13,   12,    3,   84,   84,   84,   84,
+       19,   18,   16,   13,   12,   10,    3,   84,   84,   84,
 
        84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
        84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
-       84,   84,   84,   84,   84,   84,   84,   84,   84,   84
+       84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
+       84
     } ;
 
 static yy_state_type yy_last_accepting_state;
@@ -495,7 +497,7 @@ char *yytext;
 # include <stdio.h>
 /* Get access to token types for return statements */
 # include "lang.tab.h"
-#line 499 "lex.yy.c"
+#line 501 "lex.yy.c"
 /* Read only input files */
 /* Arithmetic Operations */
 /* Stack Operations */
@@ -503,7 +505,7 @@ char *yytext;
 /* Main & End */
 /* Loops */
 /* I/O Instructions*/
-#line 507 "lex.yy.c"
+#line 509 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -722,7 +724,7 @@ YY_DECL
 	{
 #line 16 "lang.l"
 
-#line 726 "lex.yy.c"
+#line 728 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -755,7 +757,7 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 97 );
+		while ( yy_base[yy_current_state] != 98 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -930,7 +932,7 @@ YY_RULE_SETUP
 #line 52 "lang.l"
 ECHO;
 	YY_BREAK
-#line 934 "lex.yy.c"
+#line 936 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

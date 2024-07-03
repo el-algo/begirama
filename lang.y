@@ -36,7 +36,7 @@ mainfunc: MAIN
  code
  END_PROGRAM
  { fprintf(yyout, "\tcall exit\n"); }
- ;
+;
 
 
 /* Body */
@@ -51,31 +51,32 @@ code: expr code
 
 
 /* Arithmetic Operations */
-expr: NUMBER        { fprintf(yyout, "\tpush %d\n", $1); }
-| expr expr ADD     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tadd rax, rbx\n\tpush rax\n"); }
-| expr expr SUB     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tsub rax, rbx\n\tpush rax\n"); }
-| expr expr MUL     { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
-| expr expr DIV     { fprintf(yyout, "\txor rdx, rdx\n\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
-| expr expr MOD     { fprintf(yyout, "\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
+expr: NUMBER    { fprintf(yyout, "\tpush %d\n", $1); }
+| ADD           { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tadd rax, rbx\n\tpush rax\n"); }
+| SUB           { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tsub rax, rbx\n\tpush rax\n"); }
+| MUL           { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
+| DIV           { fprintf(yyout, "\txor rdx, rdx\n\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
+| MOD           { fprintf(yyout, "\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
 ;
 
 
 /* Conditional rule */
-condition: { fprintf(yyout, "\tmov rax, [rsp]\n\tcmp rax, 0\n"); }
-cond_type
-{ fprintf(yyout, "cond_%d\n", conditionals); }
-code
-ELSE
-{ fprintf(yyout, "\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
-code
-END
-{ fprintf(yyout, "cond_end_%d:\n", conditionals++); }
+condition:      { fprintf(yyout, "\tmov rax, [rsp]\n\tcmp rax, 0\n"); }
+ cond_type      { fprintf(yyout, "cond_%d\n", conditionals); }
+ code           { fprintf(yyout, "\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
+ else
+ END            { fprintf(yyout, "cond_end_%d:\n", conditionals++); }
 ;
 
 /* Types of conditionals */
 cond_type: IF_ZERO { fprintf(yyout, "\tjne "); }
 | IF_NEG           { fprintf(yyout, "\tjg "); }
 | IF_POS           { fprintf(yyout, "\tjl "); }
+;
+
+/* Else statement */
+else: ELSE code
+|
 ;
 
 

@@ -1,11 +1,5 @@
 main
-0 10 33 100 108 114 111 119 32 111 108 108 101 72
-do
-    if_zero
-        break
-    else
-        say
-        pop
-    end
-loop
+	in
+	dup *
+	out
 end_program

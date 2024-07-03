@@ -2,7 +2,6 @@ main
     4 2 -
     if_neg
         101
-    else
     end
     out
 end_program
