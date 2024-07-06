@@ -1,4 +1,5 @@
 main
+	in pop
 	in
 	dup *
 	out

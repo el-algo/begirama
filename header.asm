@@ -1,4 +1,4 @@
-global out, say, in, exit
+global out, say, in, end_program, exit
 
 section .bss
     res resd 1
@@ -126,7 +126,12 @@ in:
     pop rax
     ret
 
-exit:
+end_program:
     mov rax, 60
     mov rdx, 0
+    syscall
+
+exit:
+    mov rdx, rax
+    mov rax, 60
     syscall

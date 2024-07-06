@@ -3,9 +3,13 @@ section .text
 	extern out
 	extern in
 	extern say
+	extern end_program
 	extern exit
 
 _start:
+	call in
+	push rbx
+	pop rax
 	call in
 	push rbx
 	pop rax
@@ -16,4 +20,4 @@ _start:
 	mul rbx
 	push rax
 	call out
-	call exit
+	call end_program

@@ -32,10 +32,12 @@ program:
 
 /* Main function */
 mainfunc: MAIN
- { fprintf(yyout, "section .text\n\tglobal _start\n\textern out\n\textern in\n\textern say\n\textern exit\n\n_start:\n"); }
+ { fprintf(yyout, "section .text\n\tglobal _start\n"); }
+ { fprintf(yyout, "\textern out\n\textern in\n\textern say\n"); }
+ { fprintf(yyout, "\textern end_program\n\textern exit\n\n_start:\n"); }
  code
  END_PROGRAM
- { fprintf(yyout, "\tcall exit\n"); }
+ { fprintf(yyout, "\tcall end_program\n"); }
 ;
 
 
