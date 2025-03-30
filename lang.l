@@ -3,8 +3,10 @@
 /* Get access to token types for return statements */
 # include "lang.tab.h"
 %}
+
 /* Read only input files */
 %option noyywrap
+%x COMMENT
 
 /* Arithmetic Operations */
 /* Stack Operations */
@@ -14,6 +16,11 @@
 /* I/O Instructions*/
 
 %%
+
+"/*"        { BEGIN(COMMENT); } 
+<COMMENT>"*/" { BEGIN(INITIAL); }
+<COMMENT>.|\n { }
+
 [-]?[0-9]+	{ yylval = atoi(yytext); return NUMBER; }
 "+"		{ return ADD; }
 "-"		{ return SUB; }
@@ -46,6 +53,6 @@
 "say"	{ return SAY; }
 "exit"	{ return EXIT; }
 
-\n		{ }
-[ \t]	{ }
-.		{ /*return OTHER;*/ }
+[ \t\r]+	{ }
+\n		    { }
+.		{ fprintf(stderr, "Unrecognized character: %s\n", yytext); return OTHER; }

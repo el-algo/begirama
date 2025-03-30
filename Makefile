@@ -10,6 +10,6 @@ lang: lang.l lang.y
 # Compile Begirama source file
 comp: $(src)
 	./lang $(src)
-	nasm -f elf64 -o out.o out.asm
-	nasm -f elf64 -o header.o header.asm 
+	nasm -g -f elf64 -o out.o out.asm
+	nasm -g -f elf64 -o header.o header.asm 
 	ld -o $(src).bin out.o header.o

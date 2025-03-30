@@ -1,3 +1,7 @@
+/*
+Implementation of a Truth-machine.
+Prints 0 only if 0 is entered, otherwise it will print 1 indefinately.
+*/
 main
     in
     if_zero

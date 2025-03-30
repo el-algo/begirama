@@ -1,7 +1,5 @@
+/* Prints out the square of a number */
 main
-	0
-	if_zero
-		1
-	end
+	in dup *
 	out
 end_program

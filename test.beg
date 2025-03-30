@@ -1,6 +1,4 @@
 main
-	in pop
-	in
-	dup *
+	in dup *
 	out
 end_program

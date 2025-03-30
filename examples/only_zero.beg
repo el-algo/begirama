@@ -1,3 +1,7 @@
+/*
+Accepts numbers until a zero is entered,
+whose response is to display an emoticon :)
+*/
 main
     1
     do

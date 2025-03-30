@@ -7,17 +7,10 @@ section .text
 	extern exit
 
 _start:
+loop_1:
 	call in
 	push rbx
-	pop rax
-	call in
-	push rbx
-	pop rax
-	push rax
-	push rax
-	pop rax
-	pop rbx
-	mul rbx
-	push rax
 	call out
+	jmp loop_1
+loop_1_end:
 	call end_program

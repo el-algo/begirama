@@ -7,7 +7,6 @@ extern FILE *yyout;
 void yyerror(const char *s);
 
 int loops = 1;
-int breaks = 1;
 int conditionals = 1;
 
 %}
@@ -31,10 +30,11 @@ program:
 
 
 /* Main function */
-mainfunc: MAIN
+mainfunc: MAIN  
  { fprintf(yyout, "section .text\n\tglobal _start\n"); }
  { fprintf(yyout, "\textern out\n\textern in\n\textern say\n"); }
- { fprintf(yyout, "\textern end_program\n\textern exit\n\n_start:\n"); }
+ { fprintf(yyout, "\textern end_program\n\textern exit\n"); }
+ { fprintf(yyout, "\n_start:\n"); }
  code
  END_PROGRAM
  { fprintf(yyout, "\tcall end_program\n"); }
@@ -92,7 +92,7 @@ LOOP
 
 
 /* Break out of loop instruction */
-break: BREAK { fprintf(yyout, "\tjmp loop_%d_end\n", breaks++); };
+break: BREAK { fprintf(yyout, "\tjmp loop_%d_end\n", loops); };
 
 
 /* I/O Instructions. */

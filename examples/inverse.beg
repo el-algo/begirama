@@ -1,3 +1,4 @@
+/* Negative condition */
 main
 	0
 	if_zero
