@@ -8,128 +8,156 @@ section .bss
 section .text
 ; Prints the top of the stack
 out:
-    mov rax, [rsp + 8]
+    sub r12, 8
+    mov rax, [r12]      ; get value from data stack
+
+    push rbx
+    push rcx
+    push rdx
     xor rbx, rbx
     xor rcx, rcx
-
-    mov rbx, 10         ; Division const
+    mov rbx, 10         ; base 10
 
     test rax, rax
     jnl .a
 
-    ; Make number positive for printing
+    ; If negative, make positive and print '-'
     neg rax
     push rax
 
-    ; Print '-'
-    push 0x2D
+    push 0x2D           ; '-'
     mov rax, 1
     mov rdi, 1
     mov rsi, rsp
     mov rdx, 1
     syscall
-    add rsp, 8              ; Return stack pointer to origin
-    
+    add rsp, 8
+
     pop rax
     xor rcx, rcx
 
-    .a:
-        xor rdx, rdx
-        div rbx          ; Actual number / 10
-        push rdx
-        inc rcx         ; Count digits
-        test rax, rax
-        jnz .a
-        mov [pos], rcx  ; Store total digits
+.a:
+    xor rdx, rdx
+    div rbx             ; rax / 10 -> quotient in rax, remainder in rdx
+    push rdx            ; save digit
+    inc rcx             ; digit count
+    test rax, rax
+    jnz .a
+    mov [pos], rcx
 
-    .b:
-        pop rdx
-        add rdx, '0'        ; Digits -> ASCII
-        mov [res], dl
+.b:
+    pop rdx
+    add dl, '0'         ; to ASCII
+    mov [res], dl
 
-    .c:
-        ; Print actual char
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, res
-        mov rdx, 2
-        syscall
+    ; print char
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, res
+    mov rdx, 1
+    syscall
 
-        ; See progress
-        mov rcx, [pos]
-        dec rcx
-        mov [pos], rcx
-        cmp rcx, 0
-        jnz .b
+    mov rcx, [pos]
+    dec rcx
+    mov [pos], rcx
+    cmp rcx, 0
+    jnz .b
 
-        ; Print \n
-        push 0x0A
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, rsp
-        mov rdx, 1
-        syscall
-        add rsp, 8          ; Return stack pointer to origin
-    
-        ret
-
-say:
-    add rsp, 8
+    ; print newline
+    push 0x0A
     mov rax, 1
     mov rdi, 1
     mov rsi, rsp
     mov rdx, 1
     syscall
+    add rsp, 8
 
-    sub rsp, 8              ; Return stack pointer to origin
+    add r12, 8
+    pop rdx
+    pop rcx
+    pop rbx
     ret
+
+
+say:
+    sub r12, 8
+    mov rax, [r12]      ; get ASCII character
+
+    push rbx
+    push rcx
+    push rdx
+
+    push rax
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, 1
+    syscall
+    add rsp, 8
+
+    pop rdx
+    pop rcx
+    pop rbx
+    ret
+
 
 in:
-    push rax
-    mov rax, 0
-    mov rdi, 1
-    mov rsi, max_digits
-    mov rdx, 16
+    ; Read from stdin into buffer
+    mov rax, 0          ; syscall: read
+    mov rdi, 0          ; stdin
+    mov rsi, max_digits ; buffer
+    mov rdx, 16         ; max bytes
     syscall
 
-    xor rbx, rbx
+    ; Parsing the number
+    xor rbx, rbx        ; rbx will hold the result
+    xor rdi, rdi        ; rdi = 0 -> positive, 1 -> negative
 
-    mov al, byte[rsi]
-    inc rsi
+    mov r8, max_digits  ; r8 = pointer
+    mov al, [r8]
     cmp al, '-'
-    je .next_digit
+    jne .parse_digits
+    inc r8              ; skip '-'
+    mov rdi, 1          ; mark as negative
 
-    ; The number is negative
-    dec rsi
-    mov rdi, 0
+.parse_digits:
+    xor rcx, rcx        ; clear digit temp
 
-    .next_digit:
-        mov al, byte[rsi]
-        inc rsi
+.next_digit:
+    mov al, [r8]
+    cmp al, 0x0A        ; newline?
+    je .done_parsing
+    cmp al, 0
+    je .done_parsing
+    cmp al, '0'
+    jl .done_parsing
+    cmp al, '9'
+    jg .done_parsing
 
-        cmp al, '0'
-        jl done
-        cmp al, '9'
-        jg done
+    sub al, '0'
+    movzx rcx, al
+    imul rbx, rbx, 10
+    add rbx, rcx
 
-        sub al, '0'
-        imul rbx, 10
-        add rbx, rax
-        jmp .next_digit
+    inc r8
+    jmp .next_digit
 
-    done:
+.done_parsing:
     cmp rdi, 0
-    je in_final
+    je .positive
     neg rbx
 
-    in_final:
-    pop rax
+.positive:
+    mov [r12], rbx
+    add r12, 8
     ret
+
 
 end_program:
     mov rax, 60
     mov rdx, 0
     syscall
+
 
 exit:
     mov rdx, rax

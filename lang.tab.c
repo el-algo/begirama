@@ -70,17 +70,22 @@
 #line 1 "lang.y"
 
 #include <stdio.h>
+#include "symbol_table.h"
 
 extern int yylex(void);
 extern FILE *yyin;
 extern FILE *yyout;
 void yyerror(const char *s);
 
-int loops = 1;
+int loop_count = 1;
 int conditionals = 1;
 
+void _push(const char* reg);
+void _pop(const char* reg);
+void emit_push(FILE* f, const char* reg);
+void emit_pop(FILE* f, const char* reg);
 
-#line 84 "lang.tab.c"
+#line 89 "lang.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -112,53 +117,59 @@ enum yysymbol_kind_t
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_MAIN = 3,                       /* MAIN  */
-  YYSYMBOL_END_PROGRAM = 4,                /* END_PROGRAM  */
-  YYSYMBOL_NUMBER = 5,                     /* NUMBER  */
-  YYSYMBOL_ADD = 6,                        /* ADD  */
-  YYSYMBOL_SUB = 7,                        /* SUB  */
-  YYSYMBOL_MUL = 8,                        /* MUL  */
-  YYSYMBOL_DIV = 9,                        /* DIV  */
-  YYSYMBOL_MOD = 10,                       /* MOD  */
-  YYSYMBOL_POP = 11,                       /* POP  */
-  YYSYMBOL_DUP = 12,                       /* DUP  */
-  YYSYMBOL_SWAP = 13,                      /* SWAP  */
-  YYSYMBOL_OVER = 14,                      /* OVER  */
-  YYSYMBOL_DROP = 15,                      /* DROP  */
-  YYSYMBOL_HOLD = 16,                      /* HOLD  */
+  YYSYMBOL_NUMBER = 4,                     /* NUMBER  */
+  YYSYMBOL_ADD = 5,                        /* ADD  */
+  YYSYMBOL_SUB = 6,                        /* SUB  */
+  YYSYMBOL_MUL = 7,                        /* MUL  */
+  YYSYMBOL_DIV = 8,                        /* DIV  */
+  YYSYMBOL_MOD = 9,                        /* MOD  */
+  YYSYMBOL_POP = 10,                       /* POP  */
+  YYSYMBOL_DUP = 11,                       /* DUP  */
+  YYSYMBOL_SWAP = 12,                      /* SWAP  */
+  YYSYMBOL_OVER = 13,                      /* OVER  */
+  YYSYMBOL_DROP = 14,                      /* DROP  */
+  YYSYMBOL_HOLD = 15,                      /* HOLD  */
+  YYSYMBOL_ROT = 16,                       /* ROT  */
   YYSYMBOL_IF_POS = 17,                    /* IF_POS  */
   YYSYMBOL_IF_NEG = 18,                    /* IF_NEG  */
   YYSYMBOL_IF_ZERO = 19,                   /* IF_ZERO  */
   YYSYMBOL_ELSE = 20,                      /* ELSE  */
   YYSYMBOL_END = 21,                       /* END  */
   YYSYMBOL_DO = 22,                        /* DO  */
-  YYSYMBOL_LOOP = 23,                      /* LOOP  */
-  YYSYMBOL_BREAK = 24,                     /* BREAK  */
-  YYSYMBOL_IN = 25,                        /* IN  */
-  YYSYMBOL_OUT = 26,                       /* OUT  */
-  YYSYMBOL_SAY = 27,                       /* SAY  */
-  YYSYMBOL_EXIT = 28,                      /* EXIT  */
-  YYSYMBOL_EOL = 29,                       /* EOL  */
-  YYSYMBOL_OTHER = 30,                     /* OTHER  */
-  YYSYMBOL_YYACCEPT = 31,                  /* $accept  */
-  YYSYMBOL_program = 32,                   /* program  */
-  YYSYMBOL_mainfunc = 33,                  /* mainfunc  */
-  YYSYMBOL_34_1 = 34,                      /* $@1  */
-  YYSYMBOL_35_2 = 35,                      /* $@2  */
-  YYSYMBOL_36_3 = 36,                      /* $@3  */
-  YYSYMBOL_37_4 = 37,                      /* $@4  */
-  YYSYMBOL_code = 38,                      /* code  */
-  YYSYMBOL_expr = 39,                      /* expr  */
-  YYSYMBOL_condition = 40,                 /* condition  */
-  YYSYMBOL_41_5 = 41,                      /* $@5  */
-  YYSYMBOL_42_6 = 42,                      /* $@6  */
-  YYSYMBOL_43_7 = 43,                      /* $@7  */
-  YYSYMBOL_cond_type = 44,                 /* cond_type  */
-  YYSYMBOL_else = 45,                      /* else  */
-  YYSYMBOL_do_loop = 46,                   /* do_loop  */
-  YYSYMBOL_47_8 = 47,                      /* $@8  */
-  YYSYMBOL_break = 48,                     /* break  */
-  YYSYMBOL_in_and_out = 49,                /* in_and_out  */
-  YYSYMBOL_stack = 50                      /* stack  */
+  YYSYMBOL_WHILE = 23,                     /* WHILE  */
+  YYSYMBOL_LOOP = 24,                      /* LOOP  */
+  YYSYMBOL_BREAK = 25,                     /* BREAK  */
+  YYSYMBOL_IN = 26,                        /* IN  */
+  YYSYMBOL_OUT = 27,                       /* OUT  */
+  YYSYMBOL_SAY = 28,                       /* SAY  */
+  YYSYMBOL_EXIT = 29,                      /* EXIT  */
+  YYSYMBOL_IDENTIFIER = 30,                /* IDENTIFIER  */
+  YYSYMBOL_COLON = 31,                     /* COLON  */
+  YYSYMBOL_PERIOD = 32,                    /* PERIOD  */
+  YYSYMBOL_YYACCEPT = 33,                  /* $accept  */
+  YYSYMBOL_program = 34,                   /* program  */
+  YYSYMBOL_35_1 = 35,                      /* $@1  */
+  YYSYMBOL_definitions = 36,               /* definitions  */
+  YYSYMBOL_37_main_word = 37,              /* main-word  */
+  YYSYMBOL_38_2 = 38,                      /* $@2  */
+  YYSYMBOL_code = 39,                      /* code  */
+  YYSYMBOL_expr = 40,                      /* expr  */
+  YYSYMBOL_condition = 41,                 /* condition  */
+  YYSYMBOL_42_3 = 42,                      /* $@3  */
+  YYSYMBOL_43_4 = 43,                      /* $@4  */
+  YYSYMBOL_44_5 = 44,                      /* $@5  */
+  YYSYMBOL_cond_type = 45,                 /* cond_type  */
+  YYSYMBOL_else = 46,                      /* else  */
+  YYSYMBOL_while_loop = 47,                /* while_loop  */
+  YYSYMBOL_48_6 = 48,                      /* $@6  */
+  YYSYMBOL_do_loop = 49,                   /* do_loop  */
+  YYSYMBOL_50_7 = 50,                      /* $@7  */
+  YYSYMBOL_break = 51,                     /* break  */
+  YYSYMBOL_in_and_out = 52,                /* in_and_out  */
+  YYSYMBOL_stack = 53,                     /* stack  */
+  YYSYMBOL_define_word = 54,               /* define_word  */
+  YYSYMBOL_55_8 = 55,                      /* $@8  */
+  YYSYMBOL_call_word = 56                  /* call_word  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -486,19 +497,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   145
+#define YYLAST   143
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  31
+#define YYNTOKENS  33
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  20
+#define YYNNTS  24
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  43
+#define YYNRULES  51
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  56
+#define YYNSTATES  74
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   285
+#define YYMAXUTOK   287
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -540,18 +551,19 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    26,    27,    28,    29,    30
+      25,    26,    27,    28,    29,    30,    31,    32
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    26,    26,    28,    34,    35,    36,    37,    33,    45,
-      46,    47,    48,    49,    50,    51,    56,    57,    58,    59,
-      60,    61,    66,    67,    68,    66,    74,    75,    76,    80,
-      81,    87,    86,    95,    99,   100,   101,   102,   107,   108,
-     109,   110,   111,   112
+       0,    64,    64,    64,    76,    84,    85,    93,    93,   107,
+     108,   109,   110,   111,   112,   113,   114,   115,   123,   127,
+     133,   139,   145,   152,   166,   171,   174,   166,   189,   190,
+     191,   199,   200,   207,   207,   238,   238,   253,   261,   262,
+     263,   264,   272,   273,   278,   284,   291,   292,   293,   308,
+     308,   323
 };
 #endif
 
@@ -567,13 +579,14 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "MAIN", "END_PROGRAM",
-  "NUMBER", "ADD", "SUB", "MUL", "DIV", "MOD", "POP", "DUP", "SWAP",
-  "OVER", "DROP", "HOLD", "IF_POS", "IF_NEG", "IF_ZERO", "ELSE", "END",
-  "DO", "LOOP", "BREAK", "IN", "OUT", "SAY", "EXIT", "EOL", "OTHER",
-  "$accept", "program", "mainfunc", "$@1", "$@2", "$@3", "$@4", "code",
-  "expr", "condition", "$@5", "$@6", "$@7", "cond_type", "else", "do_loop",
-  "$@8", "break", "in_and_out", "stack", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "MAIN", "NUMBER",
+  "ADD", "SUB", "MUL", "DIV", "MOD", "POP", "DUP", "SWAP", "OVER", "DROP",
+  "HOLD", "ROT", "IF_POS", "IF_NEG", "IF_ZERO", "ELSE", "END", "DO",
+  "WHILE", "LOOP", "BREAK", "IN", "OUT", "SAY", "EXIT", "IDENTIFIER",
+  "COLON", "PERIOD", "$accept", "program", "$@1", "definitions",
+  "main-word", "$@2", "code", "expr", "condition", "$@3", "$@4", "$@5",
+  "cond_type", "else", "while_loop", "$@6", "do_loop", "$@7", "break",
+  "in_and_out", "stack", "define_word", "$@8", "call_word", YY_NULLPTR
 };
 
 static const char *
@@ -583,12 +596,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-9)
+#define YYPACT_NINF (-36)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-23)
+#define YYTABLE_NINF (-25)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -597,12 +610,14 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -9,    13,    -9,    -9,    -9,    -9,    -9,    -9,    -4,    -9,
-      -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9,
-      -9,    -9,    -9,    -9,    -9,    -9,    -9,    10,    45,    45,
-      16,    45,    45,    45,    45,    93,    -9,    -9,    -9,    -9,
-      -9,    -9,    -9,    -9,    -9,    -9,    -9,    -8,    69,    -9,
-      -9,    -1,   117,     6,    -9,    -9
+     -36,     2,   -36,   -15,   -14,    13,   -15,   -36,   -13,   -36,
+     -36,    86,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,
+     -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,
+     -36,   -36,   -36,   -12,    -2,    32,    32,    -5,    32,    32,
+      32,    32,    32,    32,    86,   113,   113,   -36,   -36,   -36,
+     -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,
+     -36,     0,    -1,     1,    59,   -36,   -36,   -36,   -36,     4,
+      86,     5,   -36,   -36
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -610,26 +625,30 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       2,     0,     1,     4,     3,     5,     6,     7,    22,    16,
-      17,    18,    19,    20,    21,    38,    39,    40,    41,    42,
-      43,    31,    33,    34,    35,    36,    37,     0,    15,    15,
-       0,    15,    15,    15,    15,    22,     8,     9,    10,    28,
-      27,    26,    23,    11,    14,    12,    13,     0,    22,    32,
-      24,    30,    22,     0,    29,    25
+       4,     2,     1,     6,     0,     0,     6,    49,     0,     3,
+       5,    24,     7,    18,    19,    20,    21,    22,    23,    42,
+      43,    44,    45,    46,    47,    48,    35,    33,    37,    38,
+      39,    40,    41,     0,     0,    17,    17,     0,    17,    17,
+      17,    17,    17,    17,    24,    24,    24,    51,    50,     9,
+      10,    30,    29,    28,    25,    11,    12,    15,    13,    14,
+      16,     0,     0,     0,    24,     8,    36,    34,    26,    32,
+      24,     0,    31,    27
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -9,    -9,    -9,    -9,    -9,    -9,    -9,    -3,    -9,    -9,
-      -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9,    -9
+     -36,   -36,   -36,    16,   -36,   -36,   -35,   -36,   -36,   -36,
+     -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,
+     -36,   -36,   -36,   -36
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     1,     4,     5,     6,     7,     8,    27,    28,    29,
-      30,    48,    51,    42,    53,    31,    35,    32,    33,    34
+       0,     1,     3,     5,     9,    44,    34,    35,    36,    37,
+      64,    69,    54,    71,    38,    46,    39,    45,    40,    41,
+      42,     6,    11,    43
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -637,72 +656,76 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-     -15,     9,    10,    11,    12,    13,    14,    15,    16,    17,
-      18,    19,    20,     2,    36,    49,     3,     0,    21,    52,
-      22,    23,    24,    25,    26,    37,    38,    55,    43,    44,
-      45,    46,    47,    39,    40,    41,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    50,     0,     0,     0,    54,
-       9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
-      19,    20,   -22,   -22,   -22,     0,     0,    21,     0,    22,
-      23,    24,    25,    26,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,     0,     0,     0,   -15,
-     -15,    21,     0,    22,    23,    24,    25,    26,     9,    10,
-      11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
-       0,     0,     0,     0,     0,    21,   -15,    22,    23,    24,
-      25,    26,     9,    10,    11,    12,    13,    14,    15,    16,
-      17,    18,    19,    20,     0,     0,     0,     0,   -15,    21,
-       0,    22,    23,    24,    25,    26
+      49,    50,     2,    55,    56,    57,    58,    59,    60,    61,
+      62,    63,    51,    52,    53,     4,     8,     7,    12,    48,
+      47,    65,    10,    66,    70,    67,    73,     0,     0,    68,
+       0,     0,     0,     0,     0,    72,    13,    14,    15,    16,
+      17,    18,    19,    20,    21,    22,    23,    24,    25,   -24,
+     -24,   -24,     0,     0,    26,    27,     0,    28,    29,    30,
+      31,    32,    33,    13,    14,    15,    16,    17,    18,    19,
+      20,    21,    22,    23,    24,    25,     0,     0,     0,   -17,
+     -17,    26,    27,     0,    28,    29,    30,    31,    32,    33,
+      13,    14,    15,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,     0,     0,     0,     0,   -17,    26,    27,
+       0,    28,    29,    30,    31,    32,    33,    13,    14,    15,
+      16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
+       0,     0,     0,     0,     0,    26,    27,   -17,    28,    29,
+      30,    31,    32,    33
 };
 
 static const yytype_int8 yycheck[] =
 {
-       4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15,    16,     0,     4,    23,     3,    -1,    22,    20,
-      24,    25,    26,    27,    28,    28,    29,    21,    31,    32,
-      33,    34,    35,    17,    18,    19,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    48,    -1,    -1,    -1,    52,
-       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    -1,    -1,    22,    -1,    24,
-      25,    26,    27,    28,     5,     6,     7,     8,     9,    10,
+      35,    36,     0,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    17,    18,    19,    30,     3,    31,    31,    21,
+      32,    21,     6,    24,    20,    24,    21,    -1,    -1,    64,
+      -1,    -1,    -1,    -1,    -1,    70,     4,     5,     6,     7,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
+      18,    19,    -1,    -1,    22,    23,    -1,    25,    26,    27,
+      28,    29,    30,     4,     5,     6,     7,     8,     9,    10,
       11,    12,    13,    14,    15,    16,    -1,    -1,    -1,    20,
-      21,    22,    -1,    24,    25,    26,    27,    28,     5,     6,
+      21,    22,    23,    -1,    25,    26,    27,    28,    29,    30,
+       4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
+      14,    15,    16,    -1,    -1,    -1,    -1,    21,    22,    23,
+      -1,    25,    26,    27,    28,    29,    30,     4,     5,     6,
        7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
       -1,    -1,    -1,    -1,    -1,    22,    23,    24,    25,    26,
-      27,    28,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    -1,    -1,    -1,    -1,    21,    22,
-      -1,    24,    25,    26,    27,    28
+      27,    28,    29,    30
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    32,     0,     3,    33,    34,    35,    36,    37,     5,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      16,    22,    24,    25,    26,    27,    28,    38,    39,    40,
-      41,    46,    48,    49,    50,    47,     4,    38,    38,    17,
-      18,    19,    44,    38,    38,    38,    38,    38,    42,    23,
-      38,    43,    20,    45,    38,    21
+       0,    34,     0,    35,    30,    36,    54,    31,     3,    37,
+      36,    55,    31,     4,     5,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    22,    23,    25,    26,
+      27,    28,    29,    30,    39,    40,    41,    42,    47,    49,
+      51,    52,    53,    56,    38,    50,    48,    32,    21,    39,
+      39,    17,    18,    19,    45,    39,    39,    39,    39,    39,
+      39,    39,    39,    39,    43,    21,    24,    24,    39,    44,
+      20,    46,    39,    21
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    31,    32,    32,    34,    35,    36,    37,    33,    38,
-      38,    38,    38,    38,    38,    38,    39,    39,    39,    39,
-      39,    39,    41,    42,    43,    40,    44,    44,    44,    45,
-      45,    47,    46,    48,    49,    49,    49,    49,    50,    50,
-      50,    50,    50,    50
+       0,    33,    35,    34,    34,    36,    36,    38,    37,    39,
+      39,    39,    39,    39,    39,    39,    39,    39,    40,    40,
+      40,    40,    40,    40,    42,    43,    44,    41,    45,    45,
+      45,    46,    46,    48,    47,    50,    49,    51,    52,    52,
+      52,    52,    53,    53,    53,    53,    53,    53,    53,    55,
+      54,    56
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     2,     0,     0,     0,     0,     7,     2,
-       2,     2,     2,     2,     2,     0,     1,     1,     1,     1,
-       1,     1,     0,     0,     0,     7,     1,     1,     1,     2,
-       0,     0,     4,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1
+       0,     2,     0,     4,     0,     2,     0,     0,     5,     2,
+       2,     2,     2,     2,     2,     2,     2,     0,     1,     1,
+       1,     1,     1,     1,     0,     0,     0,     7,     1,     1,
+       1,     2,     0,     0,     4,     0,     4,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     0,
+       5,     2
 };
 
 
@@ -1435,194 +1458,338 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 4: /* $@1: %empty  */
-#line 34 "lang.y"
- { fprintf(yyout, "section .text\n\tglobal _start\n"); }
-#line 1442 "lang.tab.c"
+  case 2: /* $@1: %empty  */
+#line 64 "lang.y"
+             { 
+        fprintf(yyout, 
+        "section .bss\n\tdatastack resq 1024\n"
+        "section .text\n\tglobal _start\n"
+        "\textern out\n\textern in\n\textern say\n"
+        "\textern end_program\n\textern exit\n"
+        "\n_start:"
+        "\n\tlea r12, [datastack]"
+        "\n\tjmp main\n");
+    }
+#line 1474 "lang.tab.c"
     break;
 
-  case 5: /* $@2: %empty  */
-#line 35 "lang.y"
- { fprintf(yyout, "\textern out\n\textern in\n\textern say\n"); }
-#line 1448 "lang.tab.c"
+  case 7: /* $@2: %empty  */
+#line 93 "lang.y"
+               { 
+        fprintf(yyout, "\nmain:\n");
+    }
+#line 1482 "lang.tab.c"
     break;
 
-  case 6: /* $@3: %empty  */
-#line 36 "lang.y"
- { fprintf(yyout, "\textern end_program\n\textern exit\n"); }
-#line 1454 "lang.tab.c"
-    break;
-
-  case 7: /* $@4: %empty  */
-#line 37 "lang.y"
- { fprintf(yyout, "\n_start:\n"); }
-#line 1460 "lang.tab.c"
-    break;
-
-  case 8: /* mainfunc: MAIN $@1 $@2 $@3 $@4 code END_PROGRAM  */
-#line 40 "lang.y"
- { fprintf(yyout, "\tcall end_program\n"); }
-#line 1466 "lang.tab.c"
-    break;
-
-  case 16: /* expr: NUMBER  */
-#line 56 "lang.y"
-                { fprintf(yyout, "\tpush %d\n", yyvsp[0]); }
-#line 1472 "lang.tab.c"
-    break;
-
-  case 17: /* expr: ADD  */
-#line 57 "lang.y"
-                { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tadd rax, rbx\n\tpush rax\n"); }
-#line 1478 "lang.tab.c"
-    break;
-
-  case 18: /* expr: SUB  */
-#line 58 "lang.y"
-                { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tsub rax, rbx\n\tpush rax\n"); }
-#line 1484 "lang.tab.c"
-    break;
-
-  case 19: /* expr: MUL  */
-#line 59 "lang.y"
-                { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tmul rbx\n\tpush rax\n"); }
+  case 8: /* main-word: MAIN COLON $@2 code END  */
+#line 97 "lang.y"
+        {
+        fprintf(yyout, "\tcall end_program\n");
+    }
 #line 1490 "lang.tab.c"
     break;
 
-  case 20: /* expr: DIV  */
-#line 60 "lang.y"
-                { fprintf(yyout, "\txor rdx, rdx\n\tpop rax\n\tpop rbx\n\tdiv rbx\n\tpush rax\n");  }
-#line 1496 "lang.tab.c"
+  case 18: /* expr: NUMBER  */
+#line 123 "lang.y"
+           {
+        fprintf(yyout, "\tmov rax, %d\n", (yyvsp[0].num));
+        _push("rax");
+    }
+#line 1499 "lang.tab.c"
     break;
 
-  case 21: /* expr: MOD  */
-#line 61 "lang.y"
-                { fprintf(yyout, "\txor rdx, rdx\n\tpop rbx\n\tpop rax\n\tdiv rbx\n\tpush rdx\n");  }
-#line 1502 "lang.tab.c"
+  case 19: /* expr: ADD  */
+#line 127 "lang.y"
+          {
+        _pop("rax");
+        _pop("rbx");
+        fprintf(yyout, "\tadd rax, rbx\n");
+        _push("rax");
+    }
+#line 1510 "lang.tab.c"
     break;
 
-  case 22: /* $@5: %empty  */
-#line 66 "lang.y"
-                { fprintf(yyout, "\tmov rax, [rsp]\n\tcmp rax, 0\n"); }
-#line 1508 "lang.tab.c"
+  case 20: /* expr: SUB  */
+#line 133 "lang.y"
+          {
+        _pop("rbx");
+        _pop("rax");
+        fprintf(yyout, "\tsub rax, rbx\n");
+        _push("rax");
+    }
+#line 1521 "lang.tab.c"
     break;
 
-  case 23: /* $@6: %empty  */
-#line 67 "lang.y"
-                { fprintf(yyout, "cond_%d\n", conditionals); }
-#line 1514 "lang.tab.c"
-    break;
-
-  case 24: /* $@7: %empty  */
-#line 68 "lang.y"
-                { fprintf(yyout, "\tjmp cond_end_%d\ncond_%d:\n", conditionals, conditionals); }
-#line 1520 "lang.tab.c"
-    break;
-
-  case 25: /* condition: $@5 cond_type $@6 code $@7 else END  */
-#line 70 "lang.y"
-                { fprintf(yyout, "cond_end_%d:\n", conditionals++); }
-#line 1526 "lang.tab.c"
-    break;
-
-  case 26: /* cond_type: IF_ZERO  */
-#line 74 "lang.y"
-                   { fprintf(yyout, "\tjne "); }
+  case 21: /* expr: MUL  */
+#line 139 "lang.y"
+          {
+        _pop("rax");
+        _pop("rbx");
+        fprintf(yyout, "\timul rax, rbx\n");
+        _push("rax");
+    }
 #line 1532 "lang.tab.c"
     break;
 
-  case 27: /* cond_type: IF_NEG  */
-#line 75 "lang.y"
-                   { fprintf(yyout, "\tjg "); }
-#line 1538 "lang.tab.c"
-    break;
-
-  case 28: /* cond_type: IF_POS  */
-#line 76 "lang.y"
-                   { fprintf(yyout, "\tjl "); }
+  case 22: /* expr: DIV  */
+#line 145 "lang.y"
+          { 
+        fprintf(yyout, "\txor rdx, rdx\n");
+        _pop("rbx");
+        _pop("rax");
+        fprintf(yyout, "\tidiv rbx\n");
+        _push("rax");
+    }
 #line 1544 "lang.tab.c"
     break;
 
-  case 31: /* $@8: %empty  */
-#line 87 "lang.y"
-{ fprintf(yyout, "loop_%d:\n", loops); }
-#line 1550 "lang.tab.c"
-    break;
-
-  case 32: /* do_loop: DO $@8 code LOOP  */
-#line 90 "lang.y"
-{ fprintf(yyout, "\tjmp loop_%d\nloop_%d_end:\n", loops, loops); loops++;}
+  case 23: /* expr: MOD  */
+#line 152 "lang.y"
+          {
+        fprintf(yyout, "\txor rdx, rdx\n");
+        _pop("rbx");
+        _pop("rax");
+        fprintf(yyout, "\tidiv rbx\n");
+        _push("rdx");
+    }
 #line 1556 "lang.tab.c"
     break;
 
-  case 33: /* break: BREAK  */
-#line 95 "lang.y"
-             { fprintf(yyout, "\tjmp loop_%d_end\n", loops); }
-#line 1562 "lang.tab.c"
+  case 24: /* $@3: %empty  */
+#line 166 "lang.y"
+    { 
+        fprintf(yyout,
+        "\tmov rax, [r12 - 8]\n"
+        "\tcmp rax, 0\n");
+    }
+#line 1566 "lang.tab.c"
     break;
 
-  case 34: /* in_and_out: IN  */
-#line 99 "lang.y"
-               { fprintf(yyout, "\tcall in\n\tpush rbx\n"); }
-#line 1568 "lang.tab.c"
-    break;
-
-  case 35: /* in_and_out: OUT  */
-#line 100 "lang.y"
-      { fprintf(yyout, "\tcall out\n"); }
+  case 25: /* $@4: %empty  */
+#line 171 "lang.y"
+              {
+        fprintf(yyout, "cond_%d\n", conditionals);
+    }
 #line 1574 "lang.tab.c"
     break;
 
-  case 36: /* in_and_out: SAY  */
-#line 101 "lang.y"
-      { fprintf(yyout, "\tcall say\n"); }
-#line 1580 "lang.tab.c"
+  case 26: /* $@5: %empty  */
+#line 174 "lang.y"
+         {
+        fprintf(yyout, "\tjmp cond_end_%d\n", conditionals);
+        fprintf(yyout, "\tcond_%d\n", conditionals);
+    }
+#line 1583 "lang.tab.c"
     break;
 
-  case 37: /* in_and_out: EXIT  */
-#line 102 "lang.y"
-       { fprintf(yyout, "\tcall exit\n"); }
-#line 1586 "lang.tab.c"
+  case 27: /* condition: $@3 cond_type $@4 code $@5 else END  */
+#line 179 "lang.y"
+        {
+        fprintf(yyout, "cond_end_%d:\n", conditionals++);
+    }
+#line 1591 "lang.tab.c"
     break;
 
-  case 38: /* stack: POP  */
-#line 107 "lang.y"
-           { fprintf(yyout, "\tpop rax\n"); }
-#line 1592 "lang.tab.c"
+  case 28: /* cond_type: IF_ZERO  */
+#line 189 "lang.y"
+              { fprintf(yyout, "\tjne "); }
+#line 1597 "lang.tab.c"
     break;
 
-  case 39: /* stack: DUP  */
-#line 108 "lang.y"
-           { fprintf(yyout, "\tpop rax\n\tpush rax\n\tpush rax\n"); }
-#line 1598 "lang.tab.c"
+  case 29: /* cond_type: IF_NEG  */
+#line 190 "lang.y"
+             { fprintf(yyout, "\tjg "); }
+#line 1603 "lang.tab.c"
     break;
 
-  case 40: /* stack: SWAP  */
-#line 109 "lang.y"
-           { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rax\n\tpush rbx\n"); }
-#line 1604 "lang.tab.c"
+  case 30: /* cond_type: IF_POS  */
+#line 191 "lang.y"
+             { fprintf(yyout, "\tjl "); }
+#line 1609 "lang.tab.c"
     break;
 
-  case 41: /* stack: OVER  */
-#line 110 "lang.y"
-           { fprintf(yyout, "\tpop rax\n\tpop rbx\n\tpush rbx\n\tpush rax\n\tpush rbx\n"); }
-#line 1610 "lang.tab.c"
+  case 33: /* $@6: %empty  */
+#line 207 "lang.y"
+           {
+        // Start -> r13
+        // Limit -> r14
+        fprintf(yyout,
+        "\tsub r12, 8\n\tmov r13, [r12]\n"
+        "\tsub r12, 8\n\tmov r14, [r12]\n");
+
+        // Label to start of the loop
+        fprintf(yyout, "loop_start_%d:\n", loop_count);
+
+        // Compare i < limit
+        fprintf(yyout,
+        "\tcmp r13, r14\n"
+        "\tjge loop_end_%d\n",
+        loop_count);
+    }
+#line 1630 "lang.tab.c"
     break;
 
-  case 42: /* stack: DROP  */
-#line 111 "lang.y"
-           { fprintf(yyout, "\tadd rsp, 8\n"); }
-#line 1616 "lang.tab.c"
+  case 34: /* while_loop: WHILE $@6 code LOOP  */
+#line 224 "lang.y"
+         {
+        // Increment i
+        fprintf(yyout, "\tinc r13\n");
+        fprintf(yyout, "\tjmp loop_start_%d\n", loop_count);
+        fprintf(yyout, "loop_end_%d:\n", loop_count);
+        loop_count++;
+    }
+#line 1642 "lang.tab.c"
     break;
 
-  case 43: /* stack: HOLD  */
-#line 112 "lang.y"
-           { fprintf(yyout, "\tsub rsp, 8\n"); }
-#line 1622 "lang.tab.c"
+  case 35: /* $@7: %empty  */
+#line 238 "lang.y"
+       {
+        fprintf(yyout, "loop_start_%d:\n", loop_count);
+    }
+#line 1650 "lang.tab.c"
+    break;
+
+  case 36: /* do_loop: DO $@7 code LOOP  */
+#line 242 "lang.y"
+         {
+        fprintf(yyout, "\tjmp loop_start_%d\n", loop_count);
+        fprintf(yyout, "loop_end_%d:\n", loop_count);
+        loop_count++;
+    }
+#line 1660 "lang.tab.c"
+    break;
+
+  case 37: /* break: BREAK  */
+#line 253 "lang.y"
+          { fprintf(yyout, "\tjmp loop_end_%d\n", loop_count); }
+#line 1666 "lang.tab.c"
+    break;
+
+  case 38: /* in_and_out: IN  */
+#line 261 "lang.y"
+         { fprintf(yyout, "\tcall in\n"); }
+#line 1672 "lang.tab.c"
+    break;
+
+  case 39: /* in_and_out: OUT  */
+#line 262 "lang.y"
+          { fprintf(yyout, "\tcall out\n"); }
+#line 1678 "lang.tab.c"
+    break;
+
+  case 40: /* in_and_out: SAY  */
+#line 263 "lang.y"
+          { fprintf(yyout, "\tcall say\n"); }
+#line 1684 "lang.tab.c"
+    break;
+
+  case 41: /* in_and_out: EXIT  */
+#line 264 "lang.y"
+           { fprintf(yyout, "\tcall exit\n"); }
+#line 1690 "lang.tab.c"
+    break;
+
+  case 42: /* stack: POP  */
+#line 272 "lang.y"
+          { _pop("rax"); }
+#line 1696 "lang.tab.c"
+    break;
+
+  case 43: /* stack: DUP  */
+#line 273 "lang.y"
+          { 
+        _pop("rax");
+        _push("rax");
+        _push("rax");
+    }
+#line 1706 "lang.tab.c"
+    break;
+
+  case 44: /* stack: SWAP  */
+#line 278 "lang.y"
+           { 
+        _pop("rax");
+        _pop("rbx");
+        _push("rax");
+        _push("rbx");
+    }
+#line 1717 "lang.tab.c"
+    break;
+
+  case 45: /* stack: OVER  */
+#line 284 "lang.y"
+           {
+        _pop("rax");
+        _pop("rbx");
+        _push("rbx");
+        _push("rax");
+        _push("rbx"); 
+    }
+#line 1729 "lang.tab.c"
+    break;
+
+  case 46: /* stack: DROP  */
+#line 291 "lang.y"
+           { fprintf(yyout, "\tsub r12, 8\n"); }
+#line 1735 "lang.tab.c"
+    break;
+
+  case 47: /* stack: HOLD  */
+#line 292 "lang.y"
+           { fprintf(yyout, "\tadd r12, 8\n"); }
+#line 1741 "lang.tab.c"
+    break;
+
+  case 48: /* stack: ROT  */
+#line 293 "lang.y"
+          {
+        fprintf(yyout,
+        "\tmov rax, [r12 - 8]\n"
+        "\tmov rbx, [r12 - 16]\n"
+        "\tmov rcx, [r12 - 24]\n"
+        "\tmov [r12 - 8], rcx\n"
+        "\tmov [r12 - 16], rax\n"
+        "\tmov [r12 - 24], rbx\n");
+    }
+#line 1755 "lang.tab.c"
+    break;
+
+  case 49: /* $@8: %empty  */
+#line 308 "lang.y"
+                     {
+        Symbol* symbol = define_symbol((yyvsp[-1].id));
+        fprintf(yyout, "%s:\n", symbol->label);
+    }
+#line 1764 "lang.tab.c"
+    break;
+
+  case 50: /* define_word: IDENTIFIER COLON $@8 code END  */
+#line 313 "lang.y"
+        { 
+        fprintf(yyout, "\tret\n");
+        free((yyvsp[-4].id));
+    }
+#line 1773 "lang.tab.c"
+    break;
+
+  case 51: /* call_word: IDENTIFIER PERIOD  */
+#line 323 "lang.y"
+                      { 
+        Symbol* symbol = lookup_symbol((yyvsp[-1].id));
+        if (!symbol) {
+            fprintf(stderr, "Undefined word: %s\n", (yyvsp[-1].id));
+            exit(1);
+        }
+    
+        // Use the latest version of the label
+        fprintf(yyout, "\tcall %s\n", symbol->label);
+        free((yyvsp[-1].id));
+    }
+#line 1789 "lang.tab.c"
     break;
 
 
-#line 1626 "lang.tab.c"
+#line 1793 "lang.tab.c"
 
       default: break;
     }
@@ -1846,7 +2013,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 115 "lang.y"
+#line 336 "lang.y"
 
 int main(int argc, char **argv)
 {
@@ -1857,6 +2024,9 @@ int main(int argc, char **argv)
     // Parse source file
     yyparse();
 
+    // Clean up memory
+    free_symbol_table();
+
     // Close the input and output files
     fclose(yyin);
     fclose(yyout);
@@ -1864,5 +2034,37 @@ int main(int argc, char **argv)
 
 void yyerror(const char *s)
 {
-    fprintf(stderr, "error: %s\n", s);
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+// Push wrapper function
+void _push(const char* reg)
+{
+    emit_push(yyout, reg);
+}
+
+// Pop wrapper function
+void _pop(const char* reg)
+{
+    emit_pop(yyout, reg);
+}
+
+// Uses r12 as the stack pointer
+void emit_push(FILE* f, const char* reg)
+{
+    fprintf(f,
+        "\tmov [r12], %s\n"
+        "\tadd r12, 8\n",
+        reg
+    );
+}
+
+// Uses r12 as the stack pointer
+void emit_pop(FILE* f, const char* reg)
+{
+    fprintf(f,
+        "\tsub r12, 8\n"
+        "\tmov %s, [r12]\n",
+        reg
+    );
 }

@@ -55,40 +55,52 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
     MAIN = 258,                    /* MAIN  */
-    END_PROGRAM = 259,             /* END_PROGRAM  */
-    NUMBER = 260,                  /* NUMBER  */
-    ADD = 261,                     /* ADD  */
-    SUB = 262,                     /* SUB  */
-    MUL = 263,                     /* MUL  */
-    DIV = 264,                     /* DIV  */
-    MOD = 265,                     /* MOD  */
-    POP = 266,                     /* POP  */
-    DUP = 267,                     /* DUP  */
-    SWAP = 268,                    /* SWAP  */
-    OVER = 269,                    /* OVER  */
-    DROP = 270,                    /* DROP  */
-    HOLD = 271,                    /* HOLD  */
+    NUMBER = 259,                  /* NUMBER  */
+    ADD = 260,                     /* ADD  */
+    SUB = 261,                     /* SUB  */
+    MUL = 262,                     /* MUL  */
+    DIV = 263,                     /* DIV  */
+    MOD = 264,                     /* MOD  */
+    POP = 265,                     /* POP  */
+    DUP = 266,                     /* DUP  */
+    SWAP = 267,                    /* SWAP  */
+    OVER = 268,                    /* OVER  */
+    DROP = 269,                    /* DROP  */
+    HOLD = 270,                    /* HOLD  */
+    ROT = 271,                     /* ROT  */
     IF_POS = 272,                  /* IF_POS  */
     IF_NEG = 273,                  /* IF_NEG  */
     IF_ZERO = 274,                 /* IF_ZERO  */
     ELSE = 275,                    /* ELSE  */
     END = 276,                     /* END  */
     DO = 277,                      /* DO  */
-    LOOP = 278,                    /* LOOP  */
-    BREAK = 279,                   /* BREAK  */
-    IN = 280,                      /* IN  */
-    OUT = 281,                     /* OUT  */
-    SAY = 282,                     /* SAY  */
-    EXIT = 283,                    /* EXIT  */
-    EOL = 284,                     /* EOL  */
-    OTHER = 285                    /* OTHER  */
+    WHILE = 278,                   /* WHILE  */
+    LOOP = 279,                    /* LOOP  */
+    BREAK = 280,                   /* BREAK  */
+    IN = 281,                      /* IN  */
+    OUT = 282,                     /* OUT  */
+    SAY = 283,                     /* SAY  */
+    EXIT = 284,                    /* EXIT  */
+    IDENTIFIER = 285,              /* IDENTIFIER  */
+    COLON = 286,                   /* COLON  */
+    PERIOD = 287                   /* PERIOD  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 21 "lang.y"
+
+    int num;
+    char* id;
+
+#line 101 "lang.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

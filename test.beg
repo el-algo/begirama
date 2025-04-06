@@ -1,4 +1,14 @@
-main
-	in dup *
-	out
-end_program
+/* Fibonacci (Iterative) */
+fib_iter:
+	0 1 rot 0
+	while
+		over +
+		swap
+		out
+	loop
+	drop
+end
+
+main:
+	10 fib_iter.
+end
