@@ -1,14 +1,24 @@
-/* Fibonacci (Iterative) */
-fib_iter:
-	0 1 rot 0
-	while
-		over +
-		swap
-		out
+/* Prints a square of Asterisk */
+puts:
+	do
+		if_zero
+			drop break
+		end
+		say
 	loop
-	drop
+end
+
+puts_ln:
+	0 10 puts.
 end
 
 main:
-	10 fib_iter.
+	20 0
+	while
+		20 0
+		while
+			0 32 42 puts.
+		loop
+		puts_ln.
+	loop
 end

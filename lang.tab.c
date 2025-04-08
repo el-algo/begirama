@@ -71,13 +71,20 @@
 
 #include <stdio.h>
 #include "symbol_table.h"
+#define MAX_LOOP_DEPTH 256
 
 extern int yylex(void);
 extern FILE *yyin;
 extern FILE *yyout;
 void yyerror(const char *s);
 
-int loop_count = 1;
+int loop_count = 0;
+int loop_stack[MAX_LOOP_DEPTH];
+int loop_stack_top = -1;
+
+void push_loop(int count);
+int pop_loop();
+
 int conditionals = 1;
 
 void _push(const char* reg);
@@ -85,7 +92,7 @@ void _pop(const char* reg);
 void emit_push(FILE* f, const char* reg);
 void emit_pop(FILE* f, const char* reg);
 
-#line 89 "lang.tab.c"
+#line 96 "lang.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -558,12 +565,12 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    64,    64,    64,    76,    84,    85,    93,    93,   107,
-     108,   109,   110,   111,   112,   113,   114,   115,   123,   127,
-     133,   139,   145,   152,   166,   171,   174,   166,   189,   190,
-     191,   199,   200,   207,   207,   238,   238,   253,   261,   262,
-     263,   264,   272,   273,   278,   284,   291,   292,   293,   308,
-     308,   323
+       0,    71,    71,    71,    83,    91,    92,   100,   100,   114,
+     115,   116,   117,   118,   119,   120,   121,   122,   130,   134,
+     140,   146,   152,   159,   173,   178,   181,   173,   196,   197,
+     198,   206,   207,   214,   214,   258,   258,   279,   287,   288,
+     289,   290,   298,   299,   304,   310,   317,   318,   319,   334,
+     334,   349
 };
 #endif
 
@@ -1459,7 +1466,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 64 "lang.y"
+#line 71 "lang.y"
              { 
         fprintf(yyout, 
         "section .bss\n\tdatastack resq 1024\n"
@@ -1470,69 +1477,69 @@ yyreduce:
         "\n\tlea r12, [datastack]"
         "\n\tjmp main\n");
     }
-#line 1474 "lang.tab.c"
+#line 1481 "lang.tab.c"
     break;
 
   case 7: /* $@2: %empty  */
-#line 93 "lang.y"
+#line 100 "lang.y"
                { 
         fprintf(yyout, "\nmain:\n");
     }
-#line 1482 "lang.tab.c"
+#line 1489 "lang.tab.c"
     break;
 
   case 8: /* main-word: MAIN COLON $@2 code END  */
-#line 97 "lang.y"
+#line 104 "lang.y"
         {
         fprintf(yyout, "\tcall end_program\n");
     }
-#line 1490 "lang.tab.c"
+#line 1497 "lang.tab.c"
     break;
 
   case 18: /* expr: NUMBER  */
-#line 123 "lang.y"
+#line 130 "lang.y"
            {
         fprintf(yyout, "\tmov rax, %d\n", (yyvsp[0].num));
         _push("rax");
     }
-#line 1499 "lang.tab.c"
+#line 1506 "lang.tab.c"
     break;
 
   case 19: /* expr: ADD  */
-#line 127 "lang.y"
+#line 134 "lang.y"
           {
         _pop("rax");
         _pop("rbx");
         fprintf(yyout, "\tadd rax, rbx\n");
         _push("rax");
     }
-#line 1510 "lang.tab.c"
+#line 1517 "lang.tab.c"
     break;
 
   case 20: /* expr: SUB  */
-#line 133 "lang.y"
+#line 140 "lang.y"
           {
         _pop("rbx");
         _pop("rax");
         fprintf(yyout, "\tsub rax, rbx\n");
         _push("rax");
     }
-#line 1521 "lang.tab.c"
+#line 1528 "lang.tab.c"
     break;
 
   case 21: /* expr: MUL  */
-#line 139 "lang.y"
+#line 146 "lang.y"
           {
         _pop("rax");
         _pop("rbx");
         fprintf(yyout, "\timul rax, rbx\n");
         _push("rax");
     }
-#line 1532 "lang.tab.c"
+#line 1539 "lang.tab.c"
     break;
 
   case 22: /* expr: DIV  */
-#line 145 "lang.y"
+#line 152 "lang.y"
           { 
         fprintf(yyout, "\txor rdx, rdx\n");
         _pop("rbx");
@@ -1540,11 +1547,11 @@ yyreduce:
         fprintf(yyout, "\tidiv rbx\n");
         _push("rax");
     }
-#line 1544 "lang.tab.c"
+#line 1551 "lang.tab.c"
     break;
 
   case 23: /* expr: MOD  */
-#line 152 "lang.y"
+#line 159 "lang.y"
           {
         fprintf(yyout, "\txor rdx, rdx\n");
         _pop("rbx");
@@ -1552,172 +1559,191 @@ yyreduce:
         fprintf(yyout, "\tidiv rbx\n");
         _push("rdx");
     }
-#line 1556 "lang.tab.c"
+#line 1563 "lang.tab.c"
     break;
 
   case 24: /* $@3: %empty  */
-#line 166 "lang.y"
+#line 173 "lang.y"
     { 
         fprintf(yyout,
         "\tmov rax, [r12 - 8]\n"
         "\tcmp rax, 0\n");
     }
-#line 1566 "lang.tab.c"
+#line 1573 "lang.tab.c"
     break;
 
   case 25: /* $@4: %empty  */
-#line 171 "lang.y"
+#line 178 "lang.y"
               {
         fprintf(yyout, "cond_%d\n", conditionals);
     }
-#line 1574 "lang.tab.c"
+#line 1581 "lang.tab.c"
     break;
 
   case 26: /* $@5: %empty  */
-#line 174 "lang.y"
+#line 181 "lang.y"
          {
         fprintf(yyout, "\tjmp cond_end_%d\n", conditionals);
-        fprintf(yyout, "\tcond_%d\n", conditionals);
+        fprintf(yyout, "cond_%d:\n", conditionals);
     }
-#line 1583 "lang.tab.c"
+#line 1590 "lang.tab.c"
     break;
 
   case 27: /* condition: $@3 cond_type $@4 code $@5 else END  */
-#line 179 "lang.y"
+#line 186 "lang.y"
         {
         fprintf(yyout, "cond_end_%d:\n", conditionals++);
     }
-#line 1591 "lang.tab.c"
+#line 1598 "lang.tab.c"
     break;
 
   case 28: /* cond_type: IF_ZERO  */
-#line 189 "lang.y"
+#line 196 "lang.y"
               { fprintf(yyout, "\tjne "); }
-#line 1597 "lang.tab.c"
+#line 1604 "lang.tab.c"
     break;
 
   case 29: /* cond_type: IF_NEG  */
-#line 190 "lang.y"
+#line 197 "lang.y"
              { fprintf(yyout, "\tjg "); }
-#line 1603 "lang.tab.c"
+#line 1610 "lang.tab.c"
     break;
 
   case 30: /* cond_type: IF_POS  */
-#line 191 "lang.y"
+#line 198 "lang.y"
              { fprintf(yyout, "\tjl "); }
-#line 1609 "lang.tab.c"
+#line 1616 "lang.tab.c"
     break;
 
   case 33: /* $@6: %empty  */
-#line 207 "lang.y"
+#line 214 "lang.y"
            {
+        push_loop(++loop_count);
+        int current_loop = loop_count;
+
+        _pop("rbx");
+        _pop("rax");
+
         // Start -> r13
         // Limit -> r14
-        fprintf(yyout,
-        "\tsub r12, 8\n\tmov r13, [r12]\n"
-        "\tsub r12, 8\n\tmov r14, [r12]\n");
+        _push("r13");
+        _push("r14");
+        
+        fprintf(yyout, "\tmov r13, rbx\n");
+        fprintf(yyout, "\tmov r14, rax\n");
 
         // Label to start of the loop
-        fprintf(yyout, "loop_start_%d:\n", loop_count);
+        fprintf(yyout, "loop_start_%d:\n", current_loop);
 
         // Compare i < limit
         fprintf(yyout,
         "\tcmp r13, r14\n"
         "\tjge loop_end_%d\n",
-        loop_count);
+        current_loop);
     }
-#line 1630 "lang.tab.c"
+#line 1645 "lang.tab.c"
     break;
 
   case 34: /* while_loop: WHILE $@6 code LOOP  */
-#line 224 "lang.y"
+#line 239 "lang.y"
          {
+        int current_loop = loop_stack[loop_stack_top];
+
         // Increment i
         fprintf(yyout, "\tinc r13\n");
-        fprintf(yyout, "\tjmp loop_start_%d\n", loop_count);
-        fprintf(yyout, "loop_end_%d:\n", loop_count);
-        loop_count++;
+        fprintf(yyout, "\tjmp loop_start_%d\n", current_loop);
+        fprintf(yyout, "loop_end_%d:\n", current_loop);
+        pop_loop();
+
+        _pop("r14");
+        _pop("r13");
     }
-#line 1642 "lang.tab.c"
+#line 1662 "lang.tab.c"
     break;
 
   case 35: /* $@7: %empty  */
-#line 238 "lang.y"
+#line 258 "lang.y"
        {
-        fprintf(yyout, "loop_start_%d:\n", loop_count);
+        push_loop(++loop_count);
+        int current_loop = loop_count;
+
+        fprintf(yyout, "loop_start_%d:\n", current_loop);
     }
-#line 1650 "lang.tab.c"
+#line 1673 "lang.tab.c"
     break;
 
   case 36: /* do_loop: DO $@7 code LOOP  */
-#line 242 "lang.y"
+#line 265 "lang.y"
          {
-        fprintf(yyout, "\tjmp loop_start_%d\n", loop_count);
-        fprintf(yyout, "loop_end_%d:\n", loop_count);
-        loop_count++;
+        int current_loop = loop_stack[loop_stack_top];
+
+        fprintf(yyout, "\tjmp loop_start_%d\n", current_loop);
+        fprintf(yyout, "loop_end_%d:\n", current_loop);
+        
+        pop_loop();
     }
-#line 1660 "lang.tab.c"
+#line 1686 "lang.tab.c"
     break;
 
   case 37: /* break: BREAK  */
-#line 253 "lang.y"
+#line 279 "lang.y"
           { fprintf(yyout, "\tjmp loop_end_%d\n", loop_count); }
-#line 1666 "lang.tab.c"
+#line 1692 "lang.tab.c"
     break;
 
   case 38: /* in_and_out: IN  */
-#line 261 "lang.y"
+#line 287 "lang.y"
          { fprintf(yyout, "\tcall in\n"); }
-#line 1672 "lang.tab.c"
+#line 1698 "lang.tab.c"
     break;
 
   case 39: /* in_and_out: OUT  */
-#line 262 "lang.y"
+#line 288 "lang.y"
           { fprintf(yyout, "\tcall out\n"); }
-#line 1678 "lang.tab.c"
+#line 1704 "lang.tab.c"
     break;
 
   case 40: /* in_and_out: SAY  */
-#line 263 "lang.y"
+#line 289 "lang.y"
           { fprintf(yyout, "\tcall say\n"); }
-#line 1684 "lang.tab.c"
+#line 1710 "lang.tab.c"
     break;
 
   case 41: /* in_and_out: EXIT  */
-#line 264 "lang.y"
+#line 290 "lang.y"
            { fprintf(yyout, "\tcall exit\n"); }
-#line 1690 "lang.tab.c"
+#line 1716 "lang.tab.c"
     break;
 
   case 42: /* stack: POP  */
-#line 272 "lang.y"
+#line 298 "lang.y"
           { _pop("rax"); }
-#line 1696 "lang.tab.c"
+#line 1722 "lang.tab.c"
     break;
 
   case 43: /* stack: DUP  */
-#line 273 "lang.y"
+#line 299 "lang.y"
           { 
         _pop("rax");
         _push("rax");
         _push("rax");
     }
-#line 1706 "lang.tab.c"
+#line 1732 "lang.tab.c"
     break;
 
   case 44: /* stack: SWAP  */
-#line 278 "lang.y"
+#line 304 "lang.y"
            { 
         _pop("rax");
         _pop("rbx");
         _push("rax");
         _push("rbx");
     }
-#line 1717 "lang.tab.c"
+#line 1743 "lang.tab.c"
     break;
 
   case 45: /* stack: OVER  */
-#line 284 "lang.y"
+#line 310 "lang.y"
            {
         _pop("rax");
         _pop("rbx");
@@ -1725,23 +1751,23 @@ yyreduce:
         _push("rax");
         _push("rbx"); 
     }
-#line 1729 "lang.tab.c"
+#line 1755 "lang.tab.c"
     break;
 
   case 46: /* stack: DROP  */
-#line 291 "lang.y"
+#line 317 "lang.y"
            { fprintf(yyout, "\tsub r12, 8\n"); }
-#line 1735 "lang.tab.c"
+#line 1761 "lang.tab.c"
     break;
 
   case 47: /* stack: HOLD  */
-#line 292 "lang.y"
+#line 318 "lang.y"
            { fprintf(yyout, "\tadd r12, 8\n"); }
-#line 1741 "lang.tab.c"
+#line 1767 "lang.tab.c"
     break;
 
   case 48: /* stack: ROT  */
-#line 293 "lang.y"
+#line 319 "lang.y"
           {
         fprintf(yyout,
         "\tmov rax, [r12 - 8]\n"
@@ -1751,29 +1777,29 @@ yyreduce:
         "\tmov [r12 - 16], rax\n"
         "\tmov [r12 - 24], rbx\n");
     }
-#line 1755 "lang.tab.c"
+#line 1781 "lang.tab.c"
     break;
 
   case 49: /* $@8: %empty  */
-#line 308 "lang.y"
+#line 334 "lang.y"
                      {
         Symbol* symbol = define_symbol((yyvsp[-1].id));
         fprintf(yyout, "%s:\n", symbol->label);
     }
-#line 1764 "lang.tab.c"
+#line 1790 "lang.tab.c"
     break;
 
   case 50: /* define_word: IDENTIFIER COLON $@8 code END  */
-#line 313 "lang.y"
+#line 339 "lang.y"
         { 
         fprintf(yyout, "\tret\n");
         free((yyvsp[-4].id));
     }
-#line 1773 "lang.tab.c"
+#line 1799 "lang.tab.c"
     break;
 
   case 51: /* call_word: IDENTIFIER PERIOD  */
-#line 323 "lang.y"
+#line 349 "lang.y"
                       { 
         Symbol* symbol = lookup_symbol((yyvsp[-1].id));
         if (!symbol) {
@@ -1785,11 +1811,11 @@ yyreduce:
         fprintf(yyout, "\tcall %s\n", symbol->label);
         free((yyvsp[-1].id));
     }
-#line 1789 "lang.tab.c"
+#line 1815 "lang.tab.c"
     break;
 
 
-#line 1793 "lang.tab.c"
+#line 1819 "lang.tab.c"
 
       default: break;
     }
@@ -2013,7 +2039,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 336 "lang.y"
+#line 362 "lang.y"
 
 int main(int argc, char **argv)
 {
@@ -2067,4 +2093,12 @@ void emit_pop(FILE* f, const char* reg)
         "\tmov %s, [r12]\n",
         reg
     );
+}
+
+void push_loop(int count) {
+    loop_stack[++loop_stack_top] = count;
+}
+
+int pop_loop() {
+    return loop_stack[loop_stack_top--];
 }
