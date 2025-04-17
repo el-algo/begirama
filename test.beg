@@ -12,6 +12,8 @@ puts_ln:
 	0 10 puts.
 end
 
+main: dup * end
+
 main:
 	20 0
 	while

@@ -8,6 +8,9 @@ extern FILE *yyin;
 extern FILE *yyout;
 void yyerror(const char *s);
 
+bool startup_code_emitted = false;
+bool main_defined = false;
+
 int loop_count = 0;
 int loop_stack[MAX_LOOP_DEPTH];
 int loop_stack_top = -1;
@@ -70,14 +73,19 @@ void emit_pop(FILE* f, const char* reg);
 program:
       program
       { 
-        fprintf(yyout, 
-        "section .bss\n\tdatastack resq 1024\n"
-        "section .text\n\tglobal _start\n"
-        "\textern out\n\textern in\n\textern say\n"
-        "\textern end_program\n\textern exit\n"
-        "\n_start:"
-        "\n\tlea r12, [datastack]"
-        "\n\tjmp main\n");
+        if (!startup_code_emitted)
+        {
+            fprintf(yyout, 
+            "section .bss\n\tdatastack resq 1024\n"
+            "section .text\n\tglobal _start\n"
+            "\textern out\n\textern in\n\textern say\n"
+            "\textern end_program\n\textern exit\n"
+            "\n_start:"
+            "\n\tlea r12, [datastack]"
+            "\n\tjmp main\n");
+
+            startup_code_emitted = true;
+        }
       }
       definitions
       main-word
@@ -100,7 +108,17 @@ definitions:
 main-word:
     MAIN COLON
     { 
-        fprintf(yyout, "\nmain:\n");
+        if (!main_defined)
+        {
+            fprintf(yyout, "\nmain:\n");
+            
+            main_defined = true;
+        }
+        else
+        {
+            fprintf(stderr, "Error: 'main:' defined more than once.\n");
+            exit(1);
+        }
     }
     code
     END
