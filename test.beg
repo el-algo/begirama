@@ -1,4 +1,4 @@
-/* Prints a square of Asterisk */
+/* Prints a square of asterisks */
 puts:
 	do
 		if_zero
@@ -8,19 +8,10 @@ puts:
 	loop
 end
 
-puts_ln:
-	0 10 puts.
-end
-
-main: dup * end
+puts_ln: 0 10 puts. end
 
 main:
-	20 0
-	while
-		20 0
-		while
-			0 32 42 puts.
-		loop
-		puts_ln.
-	loop
+0 105 72 puts.
+89
+exit
 end

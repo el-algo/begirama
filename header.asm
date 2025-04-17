@@ -155,11 +155,11 @@ in:
 
 end_program:
     mov rax, 60
-    mov rdx, 0
+    mov rdi, 0
     syscall
 
 
 exit:
-    mov rdx, rax
+    mov rdi, rax
     mov rax, 60
     syscall

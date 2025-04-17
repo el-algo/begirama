@@ -36,17 +36,18 @@ puts_ln_1:
 	ret
 
 main:
-	sub r12, 8
-	mov rax, [r12]
+	mov rax, 0
 	mov [r12], rax
 	add r12, 8
+	mov rax, 105
 	mov [r12], rax
 	add r12, 8
-	sub r12, 8
-	mov rax, [r12]
-	sub r12, 8
-	mov rbx, [r12]
-	imul rax, rbx
+	mov rax, 72
 	mov [r12], rax
 	add r12, 8
+	call puts_1
+	mov rax, 89
+	mov [r12], rax
+	add r12, 8
+	call exit
 	call end_program
